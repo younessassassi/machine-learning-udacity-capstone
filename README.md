@@ -17,7 +17,7 @@ This project requires Python 2.7.  I used Anaconda which contained all of the ne
 The common folder contains common helper functions
 
 ### Data 
-The data folder contains all the data retrieved as part of this project.  You will need to run processing.py within the processing folder to retrieve a new set of data.
+The data folder contains all the data retrieved as part of this project.  You will need to run processing.py within the processing folder to retrieve a new set of data. Please run `python -m processing.processing` to retrieve the latest data.  Please note that this task may take a while to run as it is retrieving data from yahoo finance api. 
 
 ### Processing
 The processing folder contains modules for retrieving data and compiling it for use in other modules
