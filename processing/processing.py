@@ -13,10 +13,14 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 import numpy as np
 
+from common.common import plot_data
+
 data_directory = "data/"
 stock_dfs_directory = data_directory + "stock_dfs"
 tickers_pickle = data_directory + "sp500tickers.pickle"
 sp500_joined_closes = data_directory+'sp500_joined_closes.csv'
+sp500_reduced_joined_closes = data_directory+'sp500_reduced_joined_closes.csv'
+sp500_clean_joined_closes = data_directory+'sp500_clean_joined_closes.csv'
 
 def save_sp500_tickers():
     resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
@@ -124,19 +128,43 @@ def visualize_data():
 
 def cleanup():
     print 'cleanup'
+    df = pd.read_csv(sp500_reduced_joined_closes)
+    df.set_index('Date', inplace=True)
+    plot_data(df)
+    
+    # hm_days = 7
+    # df.pd.read_csv(sp500_joined_closes, index_col=0)
+    # tickers = df.columns.values.tolist()
+    # df.fillna(0, inplace=True)
+    
+    # for i in range(1, hm_days+1):
+    #     df['{}_{}'.format(ticker, i)] = (df[ticker].shift(-i) - df[ticker]) / df[ticker]
+
+    # df.fillna(0, inplace=True)
+    # df.to_csv(clean_sp500_joined_closes)
+
+def createReducedDataFrame():
+    startDate = "2016-01-01" 
+    endDate = "2018-01-01"
+    df = pd.read_csv(sp500_joined_closes)
+    df.set_index('Date', inplace=True)
+
+    newDF = df[startDate: endDate]
+    newDF.to_csv(sp500_clean_joined_closes)
 
 """Retrieve S&P data"""
 def run():
-    update_stock_tickers = False # refreshes the stock tickers used to retrieve stock prices
-    update_stock_prices = False # updates the stock prices from  up to yesterday
-    start_time = None 
+    update_stock_tickers = False # set to True to refresh the stock tickers used to retrieve stock prices
+    update_stock_prices = False # set to True to update the stock prices
+    start_time = None # set to True to update the stock prices
     end_time = None
     if update_stock_tickers or update_stock_prices or start_time or end_time:   
         get_data_from_yahoo(start_time, end_time, update_stock_tickers, update_stock_prices)
         create_sp500_joined_closes_file()
-        visualize_data()
-    
+        createReducedDataFrame()
+
     cleanup()
+    # visualize_data()
 
 
 if __name__ == "__main__":
