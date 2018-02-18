@@ -9,11 +9,7 @@ import datetime as dt
 import pandas_datareader as pdr
 
 
-import matplotlib.pyplot as plt
-from matplotlib import style
-import numpy as np
-
-from common.common import plot_data
+from common.common import plot_data, visualize_correlation
 
 data_directory = "data/"
 stock_dfs_directory = data_directory + "stock_dfs"
@@ -101,56 +97,16 @@ def create_sp500_joined_closes_file():
 
     main_df.to_csv(sp500_joined_closes)
 
-def visualize_data():
-    df = pd.read_csv(sp500_joined_closes)
-    df_corr = df.corr()
-    data = df_corr.values
-    fig = plt.figure()
-    ax = fig.add_subplot(1,1,1)
-    
-    heatmap = ax.pcolor(data, cmap=plt.cm.RdYlGn)
-    fig.colorbar(heatmap)
-    ax.set_xticks(np.arange(data.shape[0]) + 0.5, minor=False)
-    ax.set_yticks(np.arange(data.shape[1]) + 0.5, minor=False)
-    ax.invert_yaxis()
-    ax.xaxis.tick_top()
-    
-    column_labels = df_corr.columns
-    row_labels = df_corr.index
-    
-    ax.set_xticklabels(column_labels)
-    ax.set_yticklabels(row_labels)
-    plt.xticks(rotation=90)
-    heatmap.set_clim(-1, 1)
-    plt.tight_layout
-    
-    plt.show()
-
-def cleanup():
-    print 'cleanup'
-    df = pd.read_csv(sp500_reduced_joined_closes)
-    df.set_index('Date', inplace=True)
-    plot_data(df)
-    
-    # hm_days = 7
-    # df.pd.read_csv(sp500_joined_closes, index_col=0)
-    # tickers = df.columns.values.tolist()
-    # df.fillna(0, inplace=True)
-    
-    # for i in range(1, hm_days+1):
-    #     df['{}_{}'.format(ticker, i)] = (df[ticker].shift(-i) - df[ticker]) / df[ticker]
-
-    # df.fillna(0, inplace=True)
-    # df.to_csv(clean_sp500_joined_closes)
-
 def createReducedDataFrame():
-    startDate = "2016-01-01" 
-    endDate = "2018-01-01"
+    startDate = "2012-01-01" 
+    endDate = "2014-01-01"
     df = pd.read_csv(sp500_joined_closes)
     df.set_index('Date', inplace=True)
-
     newDF = df[startDate: endDate]
-    newDF.to_csv(sp500_clean_joined_closes)
+    newDF.fillna(method="ffill",inplace="True")
+    newDF.fillna(method="bfill",inplace="True")
+    newDF.to_csv(sp500_reduced_joined_closes)
+    # visualize_correlation(sp500_reduced_joined_closes)
 
 """Retrieve S&P data"""
 def run():
@@ -161,11 +117,7 @@ def run():
     if update_stock_tickers or update_stock_prices or start_time or end_time:   
         get_data_from_yahoo(start_time, end_time, update_stock_tickers, update_stock_prices)
         create_sp500_joined_closes_file()
-        createReducedDataFrame()
-
-    cleanup()
-    # visualize_data()
-
+    createReducedDataFrame()
 
 if __name__ == "__main__":
     run()
