@@ -19,7 +19,7 @@ def find_optimal_allocations(prices):
 """A helper function for the above function to minimize over"""
 def error_optimal_allocations(allocs, prices):
     port_val = get_portfolio_value(prices, allocs, 1)
-    cum_ret, avg_daily_ret, std_daily_ret, sharpe_ratio = get_portfolio_stats(port_val)
+    cum_ret, avg_daily_ret, std_daily_ret, sharpe_ratio = get_portfolio_statistics(port_val)
     error = sharpe_ratio * -1
     return error
 
@@ -52,26 +52,45 @@ def get_portfolio_value(stock_prices, allocations, starting_investment):
     
     return portfolio_value
 
-def get_alloc_tickers_used(df, allocations):
+def get_tickers_used(stock_prices):
+    # some stocks may not have been trading during the period selected.  
+    # The dataframe only returns stocks that were atleast partially traded at the time
+    return stock_prices.columns.values
+
+def get_allocations_used(tickers_used, allocations):
     allocations_used = allocations[:]
-    tickers_used = df.columns.values
     if len(allocations_used) == 0:
         for ticker in tickers_used:
             allocations_used.append(1/float(len(tickers_used)))
     print 'Number of tickers used: ', len(allocations_used)
-    return tickers_used, allocations_used
+    return allocations_used
+
+# def get_alloc_tickers_used(df, allocations):
+#     allocations_used = allocations[:]
+#     tickers_used = df.columns.values
+#     if len(allocations_used) == 0:
+#         for ticker in tickers_used:
+#             allocations_used.append(1/float(len(tickers_used)))
+#     print 'Number of tickers used: ', len(allocations_used)
+#     return tickers_used, allocations_used
 
 
 """Compare performance with the S&P500 for the same period"""
-def analyse_portfolio(tickers, allocations, start_date, end_date, starting_investment):
+def analyse_portfolio(tickers, allocations, start_date, end_date, starting_investment, optimize=False):
     tickers_with_SPY = tickers[:]
     tickers_with_SPY.append('SPY')
     prices_with_SPY = get_ticker_data(tickers_with_SPY, start_date, end_date)
     prices_without_SPY = prices_with_SPY.drop('SPY', axis=1)
+    
+    if optimize: 
+        allocations_used = find_optimal_allocations(prices_without_SPY)
+        allocations_used = allocations_used / np.sum( allocations_used)  # normalize allocations, if they don't sum to 1.0
+        tickers_used = get_tickers_used(prices_without_SPY)
+    else:
+        tickers_used = get_tickers_used(prices_without_SPY)
+        allocations_used = get_allocations_used(tickers_used, allocations)
 
-    tickers_used, allocations_used = get_alloc_tickers_used(prices_without_SPY, allocations)
-    # allocations_used = find_optimal_allocations(prices_without_SPY)
-
+   
     # Get daily portfolio value
     portfolio_values = get_portfolio_value(prices_without_SPY, allocations_used, starting_investment)
    
@@ -98,15 +117,17 @@ def analyse_portfolio(tickers, allocations, start_date, end_date, starting_inves
 """Though this class is mostly used for helper functions, you can execute all of them here for testing.
 Some default options are provided, though these can be changed to the stock, allocation, and date of your choice. """
 def run():
-    start_date = '2018-02-01'
-    end_date = '2018-02-03'
+    start_date = '2010-01-01'
+    end_date = '2010-12-31'
     starting_investment = 100000 # $100,000.00 as starting investment
    
-    tickers = get_all_tickers()
+    # tickers = get_all_tickers()
     allocations = []
-    # allocations = [0.5, 0.5] # allocations must add up to 1
+    optimize = True
+    tickers = ['IBM', 'T']
+    allocations = [0.5, 0.5] # allocations must add up to 1
     
-    analyse_portfolio(tickers, allocations, start_date, end_date, starting_investment)
+    analyse_portfolio(tickers, allocations, start_date, end_date, starting_investment, optimize)
 
 
 if __name__ == "__main__":
