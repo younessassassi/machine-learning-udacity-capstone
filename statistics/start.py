@@ -65,32 +65,6 @@ def get_allocations_used(tickers_used, allocations):
     print 'Number of tickers used: ', len(allocations_used)
     return allocations_used
 
-# def get_alloc_tickers_used(df, allocations):
-#     allocations_used = allocations[:]
-#     tickers_used = df.columns.values
-#     if len(allocations_used) == 0:
-#         for ticker in tickers_used:
-#             allocations_used.append(1/float(len(tickers_used)))
-#     print 'Number of tickers used: ', len(allocations_used)
-#     return tickers_used, allocations_used
-
-
-# '''Remove highly correlated tickers'''
-# def reduce_dimensions(prices, threshold):
-#     reduced = prices.copy()
-#     col_corr = set() # Set of all the names of deleted columns
-#     corr_matrix = reduced.corr()
-#     for i in range(len(corr_matrix.columns)):
-#         for j in range(i):
-#             if corr_matrix.iloc[i, j] >= threshold:
-#                 colname = corr_matrix.columns[i] # getting the name of column
-#                 col_corr.add(colname)
-#                 if colname in reduced.columns:
-#                     print 'deleting {} for its correlation is higher than the set threshold of {}'.format(colname,threshold)
-#                     del reduced[colname] # deleting the column from the reduced
-
-#     return reduced
-
 def remove_tickers_with_zero_allocation(allocations, tickers):
     index = 0
     for allocation in allocations:
@@ -115,19 +89,11 @@ def get_top_tickers_alloc(tickers_used, allocations_used):
 
 
 def get_top_optimal_tickers(prices):
-    # correlation_threshold = 0.9
-    # reduce_dimensions(prices,  correlation_threshold)
     allocations_used = find_optimal_allocations(prices)
     allocations_used = allocations_used / np.sum(allocations_used)  # normalize allocations, if they don't sum to 1.0
     tickers_used = get_tickers_used(prices)
     return get_top_tickers_alloc(tickers_used, allocations_used)
-    # if is_reduced:
-    #     print prices
-    #     print 'need to reduce prices'
-    # print sorted_tickers_alloc
-    # return prices, tickers_used, allocations_used
-    # remove_tickers_with_zero_allocation(allocations_used, tickers_used)
-
+    
 
 def get_optimized_portfolio_params(prices):
     optimized_prices = prices.copy()
@@ -139,13 +105,8 @@ def get_optimized_portfolio_params(prices):
     
     tickers_used = price_alloc.index.values
     allocations_used = price_alloc['Allocations'].values
-    print 'allocations_used: ', allocations_used
-    print 'tickers_used: ', tickers_used
-
-        # return optimized_prices, tickers_used, allocations_used
     return optimized_prices, tickers_used, allocations_used
-    # optimized_prices, tickers_used, allocations_used = get_top_optimal_tickers(prices)
-
+    
 
 """Compare performance with the S&P500 for the same period"""
 def analyse_portfolio(tickers, allocations, start_date, end_date, starting_investment, optimize=False):
@@ -183,7 +144,7 @@ def analyse_portfolio(tickers, allocations, start_date, end_date, starting_inves
     combined_df = pd.concat([portfolio_values,  prices_with_SPY['SPY']], keys=['Portfolio', 'SPY'], axis=1)
     normalized_df = combined_df/combined_df.ix[0]
     plot_data(normalized_df)
-  
+ 
 
 """Though this class is mostly used for helper functions, you can execute all of them here for testing.
 Some default options are provided, though these can be changed to the stock, allocation, and date of your choice. """

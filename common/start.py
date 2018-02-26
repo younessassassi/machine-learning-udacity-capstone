@@ -10,6 +10,7 @@ import numpy as np
 DATA_DIR = "data/"
 STOCK_DF_DIR = DATA_DIR + "stock_dfs"
 TICKERS_PICKLE_DIR = DATA_DIR + "sp500tickers.pickle"
+CLASSIFIER_PICKLE_DIR = DATA_DIR + "classifiers/"
 
 # # spy_df_directory = data_directory + "sp_index"
 # # sp500_joined_closes = data_directory+'sp500_joined_closes.csv'
@@ -32,7 +33,11 @@ def get_ticker_path(ticker):
     return STOCK_DF_DIR + '/{}.csv'.format(ticker)
 
 """Reads adjusted close stock data for given tickers from CSV files."""
-def get_ticker_data(tickers, start_date, end_date):
+def get_ticker_data(tickers=None, start_date='2006-01-03', end_date='2018-02-23'):
+    if not tickers:
+        tickers = get_all_tickers()
+        tickers.append('SPY')
+
     dates = pd.date_range(start_date, end_date)
     df = pd.DataFrame(index=dates)
 
@@ -95,3 +100,24 @@ def visualize_correlation(df):
     plt.tight_layout
     
     plt.show()
+
+
+""" get data from pickle """
+def get_pickle(data, path):
+    if not os.path.exists(path):
+        print 'file does not exist in path ' + path
+        return
+    
+    with open(path, "rb") as f:
+        data_pickle = pickle.load(f)
+
+    return data_pickle
+
+
+""" store data using pickle """
+def store_pickle(data, path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    with open(path, "wb") as f:
+        pickle.dump(data, f)
