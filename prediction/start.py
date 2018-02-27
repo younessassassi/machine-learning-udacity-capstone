@@ -10,8 +10,8 @@ from sklearn.model_selection import cross_val_score
 from prediction.Ticker import Ticker
 import matplotlib.pyplot
 
-from common.start import get_ticker_data, get_all_tickers
-from common.start import store_pickle, get_pickle, CLASSIFIER_PICKLE_DIR
+from common.start import get_ticker_data, get_all_tickers, visualize_correlation
+from common.start import store_pickle, get_pickle, store_ticker_analysis, CLASSIFIER_PICKLE_DIR
 
 def run_prediction(X_train, X_test, y_train, y_test):
     # svr_lin = svm.SVR(kernel='linear', C=1e3)
@@ -64,6 +64,7 @@ def create_classifier_for_symbol(symbol, stocks, start_date, end_date):
     y_train = ticker.get_label()
     # clf = neighbors.KNeighborsRegressor()
     clf = LinearRegression()
+    # clf = RandomForestRegressor()
     clf.fit(X_train, y_train)
     # pickle the classifier for use at a later time
     classifier_path = CLASSIFIER_PICKLE_DIR
@@ -106,19 +107,34 @@ def predict(tickers, start_date, end_date):
         predictions = run_classifier_for_symbol(symbol, stocks, start_date, end_date)
         actual_prices = get_ticker_data([symbol], start_date, end_date)
         print 'predictions for {} from {} to {}'.format(symbol, start_date, end_date)
-        print  predictions[7:]
+        print  predictions
         print 'actual prices for {} from {} to {}'.format(symbol, start_date, end_date)
-        print actual_prices[7:].values.tolist()
+        print actual_prices
+
+def analyze_features(tickers, start_date, end_date):
+    stocks = get_ticker_data(None, start_date, end_date)
+    dates = pd.date_range(start_date, end_date)
+
+    for symbol in tickers:
+        ticker = Ticker(symbol=symbol, stocks=stocks, 
+                 start_date=start_date, end_date=end_date)
+        ticker_df = ticker.get_df()
+        store_ticker_analysis(ticker_df, symbol)
+        visualize_correlation(ticker_df)
+    
 
 def run():
-    start_date = '2017-01-01'
-    end_date = '2017-12-31'
+    start_date = '2014-01-01'
+    end_date = '2018-02-15'
     tickers = ['AAPL', 'T']
-    # run_model_validation(tickers, start_date, end_date)
+    # analyze_features(tickers, start_date, end_date)
+    run_model_validation(tickers, start_date, end_date)
     # generate_model(tickers, start_date, end_date)
-    start_date = '2017-12-25'
-    end_date = '2018-01-05'
-    predict(tickers,start_date, end_date)
+    # start_date = '2017-12-24'
+    # end_date = '2018-01-03'
+    # analyze_features(tickers, start_date, end_date)
+    # predict(tickers,start_date, end_date)
+    
 
 if __name__ == "__main__":
     run()

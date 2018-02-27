@@ -12,6 +12,7 @@ DATA_DIR = "data/"
 STOCK_DF_DIR = DATA_DIR + "stock_dfs"
 TICKERS_PICKLE_DIR = DATA_DIR + "sp500tickers.pickle"
 CLASSIFIER_PICKLE_DIR = DATA_DIR + "classifiers/"
+TICKER_STATS_DIR = DATA_DIR + "ticker_stats/"
 
 
 """Retrieve the list of S&P 500 tickers"""
@@ -117,3 +118,9 @@ def store_pickle(data, filename, path):
 
     with open(path+filename, "wb") as f:
         pickle.dump(data, f)
+
+def store_ticker_analysis(df, symbol):
+    if not os.path.exists(TICKER_STATS_DIR):
+        os.makedirs(TICKER_STATS_DIR)
+    
+    df.to_csv(TICKER_STATS_DIR+symbol+'.csv')
