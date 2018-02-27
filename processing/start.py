@@ -8,8 +8,9 @@ import pandas as pd
 import datetime as dt
 import pandas_datareader as pdr
 
-
-from common.start import plot_data, visualize_correlation, save_sp500_tickers, get_ticker_path, DATA_DIR, STOCK_DF_DIR, TICKERS_PICKLE_DIR
+from common.start import plot_data, visualize_correlation
+from common.start import save_sp500_tickers, get_ticker_path
+from common.start import DATA_DIR, STOCK_DF_DIR, TICKERS_PICKLE_DIR
 
 """Retrieve stock information from yahoo finance api"""
 def get_data_from_yahoo(start, end, update_sp500_data=False):
@@ -24,7 +25,6 @@ def get_data_from_yahoo(start, end, update_sp500_data=False):
 
     if not os.path.exists(STOCK_DF_DIR):
         os.makedirs(STOCK_DF_DIR)
-
     
     if update_sp500_data:
         tickers = save_sp500_tickers()
