@@ -3,6 +3,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import pickle
+import os
 
 from matplotlib import style
 import numpy as np
@@ -103,21 +104,20 @@ def visualize_correlation(df):
 
 
 """ get data from pickle """
-def get_pickle(data, path):
-    if not os.path.exists(path):
+def get_pickle(filename, path):
+    if not os.path.exists(path+filename):
         print 'file does not exist in path ' + path
         return
     
-    with open(path, "rb") as f:
+    with open(path+filename, "rb") as f:
         data_pickle = pickle.load(f)
 
     return data_pickle
 
-
 """ store data using pickle """
-def store_pickle(data, path):
+def store_pickle(data, filename, path):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    with open(path, "wb") as f:
+    with open(path+filename, "wb") as f:
         pickle.dump(data, f)

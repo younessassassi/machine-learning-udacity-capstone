@@ -3,8 +3,8 @@ import pandas as pd
 
 class Ticker(object):
     def __init__(self, symbol=None, stocks={},
-                 start_date=None, end_date=None, volatility_window=5,
-                 momentum_window=5, bollinger_bands_window=5, moving_average_window=5):
+                 start_date=None, end_date=None, volatility_window=3,
+                 momentum_window=3, bollinger_bands_window=3, moving_average_window=3):
         self.symbol=symbol
         self.max_window=max(momentum_window, bollinger_bands_window, moving_average_window)
         self.momentum_window=momentum_window

@@ -11,55 +11,7 @@ from prediction.Ticker import Ticker
 import matplotlib.pyplot
 
 from common.start import get_ticker_data, get_all_tickers
-from common.start import store_pickle, get_pickle
-
-# def siraj():
-#     svr_lin = svm.SVR(kernal='linear', C=1e3)
-#     svr_poly = svm.SVR(kernel= 'poly', C=1e3, degree=2)
-#     svr_rbf = svm.SVR(kernel='rbf', C=1e3, gamma=0.1)
-
-#     svr_lin.fit(dates, prices)
-#     svr_poly.fit(dates, prices)
-#     svr_rbf.fit(dates, prices)
-
-#     plt.scatter(dates, prices, color='black', label='Data')
-#     plt.plot(dates, svr_rbf.predict(dates), color='red', label='RBF model')
-#     plt.plot(dates, svr_lin.predict(dates), color='green', label='linear model')
-#     plt.plot(dates, svr_poly.predict(dates), color='blue', label='Polynomial model')
-#     plt.xlabel('Date')
-#     plt.ylabel('Price')
-#     plt.title('Support Vector Regression')
-#     plt.legend()
-#     plt.show()
-
-#     return svr_rbf.predict(x)[0], svr_lin.predict(x)[0], svr_poly.predict(x)[0]
-
-# def sentdexpredict(ticker):
-#     X, y, df = extract_featuresets(ticker)
-
-#     X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size:0.25)
-
-#     # clf = neighbors.KNeighborsClassifier()
-#     clf = VotingClassifier([('lsvc', svm.LinearSVC()),
-#                             ('knn', neighbors.KNeighborsClassifier()),
-#                             ('rfor', RandomForestClassifier())])
-#     clf.fit(X_train, y_train)
-#     confidence = clf.score(X_test, y_test)
-#     # pickle the classifier for use at a later time
-#     classifier_path = CLASSIFIER_PICKLE_DIR + 'knn'
-#     store_pickle(classifier_path, clf)
-#     print 'Accuracy: ' + confidence
-#     predictions = clf.predict(X_test)
-#     print 'Predicted spread: ', Counter(predictions)
-
-#     return confidence
-
-# def score(clf, X, y, cv=2):
-#     scores = cross_val_score(clf, X, y, cv=2)
-
-#     print 'scores: ', scores
-
-#     print 'Accuracy: %0.2f (+/- %0.2f)' % (scores.mean(), scores.std() * 2)
+from common.start import store_pickle, get_pickle, CLASSIFIER_PICKLE_DIR
 
 def run_prediction(X_train, X_test, y_train, y_test):
     # svr_lin = svm.SVR(kernel='linear', C=1e3)
@@ -68,7 +20,8 @@ def run_prediction(X_train, X_test, y_train, y_test):
     # clf = svr_lin
     # clf = svr_poly
     # clf = svr_rbf
-    clf =  LinearRegression()
+    # clf =  LinearRegression()
+    clf = neighbors.KNeighborsRegressor()
     # clf = RandomForestRegressor()
     # clf = neighbors.KNeighborsRegressor()
     clf.fit(X_train, y_train)
@@ -82,7 +35,7 @@ def run_prediction(X_train, X_test, y_train, y_test):
 
     return confidence, predictions
 
-def predict_for_symbol(symbol, stocks, start_date, end_date):
+def cross_validate_for_symbol(symbol, stocks, start_date, end_date):
     ticker = Ticker(symbol=symbol, stocks=stocks, 
                  start_date=start_date, end_date=end_date)
     X = ticker.get_features()
@@ -101,31 +54,71 @@ def predict_for_symbol(symbol, stocks, start_date, end_date):
 
     confidence_mean = np.array(confidenceList).mean()
     rmse_mean = np.array(rmseList).mean()
-    
     print 'Confidence: ', confidence_mean
     print "Root Mean Squared Error of Predictions: ", rmse_mean
 
+def create_classifier_for_symbol(symbol, stocks, start_date, end_date):
+    ticker = Ticker(symbol=symbol, stocks=stocks, 
+                 start_date=start_date, end_date=end_date)
+    X_train = ticker.get_features()
+    y_train = ticker.get_label()
+    clf = neighbors.KNeighborsRegressor()
+    # clf = LinearRegression()
+    clf.fit(X_train, y_train)
+    # pickle the classifier for use at a later time
+    classifier_path = CLASSIFIER_PICKLE_DIR
+    store_pickle(clf, symbol+'_model.sav', classifier_path)
 
-def plot(title, y_test, y_pred, y_baseline):
-    y_test_out = y_test.reset_index().drop("index", axis=1)
-    
-    print "{} Error : {}%".format(name, sum(abs((y_test_out['Adj Close'] - y_pred) / y_test_out['Adj Close'])) * 100 / len(y_test_out))
-    y_test_out['prediction']=y_pred
-    y_test_out['baseline']=y_baseline
-    y_test_out.plot()
+def plot(actual_prices, predictions):
+    print 'Actual prices: ', actual_prices
+    # data = {'Actual Prices': actual_prices, 'Predictions': predictions}
+    # # print data
+    # df = pd.DataFrame(data = data)
+    # ax = df.plot(title="Prediction Results", fontsize=12)
+    # ax.set_xlabel("Date")
+    # ax.set_ylabel("Price")
+    # plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1))
+    # plt.show()
 
-def predict():
+def run_classifier_for_symbol(symbol, stocks, start_date, end_date):
+    ticker = Ticker(symbol=symbol, stocks=stocks, 
+                 start_date=start_date, end_date=end_date)
+    X_predict = ticker.get_features()
+    classifier_path = CLASSIFIER_PICKLE_DIR
+    model = get_pickle(symbol+'_model.sav', classifier_path)
+
+    return model.predict(X_predict)
+
+def run_model_validation(tickers, start_date, end_date):
+    stocks = get_ticker_data(None, start_date, end_date)
+    for symbol in tickers:
+        cross_validate_for_symbol(symbol, stocks, start_date, end_date)
+       
+def generate_model(tickers, start_date, end_date):
+    stocks = get_ticker_data(None, start_date, end_date)
+    for symbol in tickers:
+        create_classifier_for_symbol(symbol, stocks, start_date, end_date)
+
+
+def predict(tickers, start_date, end_date):
+    stocks = get_ticker_data(None, start_date, end_date)
+    for symbol in tickers:
+        predictions = run_classifier_for_symbol(symbol, stocks, start_date, end_date)
+        actual_prices = get_ticker_data([symbol], start_date, end_date)
+        print 'predictions for {} from {} to {}'.format(symbol, start_date, end_date)
+        print  predictions
+        print 'actual prices for {} from {} to {}'.format(symbol, start_date, end_date)
+        print actual_prices
+
+def run():
     start_date = '2017-01-01'
     end_date = '2017-12-31'
-    tickers = ['SPY']
-    stocks = get_ticker_data(None, start_date, end_date)
-    
-    for symbol in tickers:
-        predict_for_symbol(symbol, stocks, start_date, end_date)
-    
-   
-def run():
-    predict()
+    tickers = ['AAPL', 'T']
+    run_model_validation(tickers, start_date, end_date)
+    generate_model(tickers, start_date, end_date)
+    start_date = '2018-01-01'
+    end_date = '2018-01-05'
+    predict(tickers,start_date, end_date)
 
 if __name__ == "__main__":
     run()
