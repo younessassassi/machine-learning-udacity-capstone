@@ -26,10 +26,7 @@ class Ticker(object):
         
         self.original_df=features_df.copy()
         
-        features_df=features_df.join(self._calculate_daily_returns(df=self.original_df))
-        features_df=features_df.join(self._calculate_cumulative_returns(df=self.original_df))
         features_df=features_df.join(self._calculate_momentum(df=self.original_df))
-        features_df=features_df.join(self._calculate_moving_average(df=self.original_df))
         bb_upper_bound,bb_lower_bound=self._calculate_bb(df=self.original_df)
         features_df=features_df.join(bb_upper_bound)
         features_df=features_df.join(bb_lower_bound)
@@ -63,16 +60,8 @@ class Ticker(object):
 
     
     def print_df(self):
-        print self.df
+        print self.df    
     
-    def _calculate_daily_returns(self, df=None):
-        daily_returns=df.copy()
-        daily_returns=(daily_returns/daily_returns.shift(1))-1
-        return daily_returns[1:].rename(columns={'Adj Close': 'Daily Returns'})
-    
-    def _calculate_cumulative_returns(self, df=None):
-        return ((df/df.ix[0]) - 1).rename(columns={'Adj Close': 'Cumulative Returns'})
-
     def _calculate_momentum(self, df=None):
         n=self.momentum_window
         
@@ -83,11 +72,6 @@ class Ticker(object):
         n=self.volatility_window
         return ((df.rolling(window=n,center=False).std())[n:] - 1 ).rename(columns={'Adj Close': 'Volatility'})
    
-    def _calculate_moving_average(self, df=None):
-        n=self.moving_average_window
-        
-        return ((df/df.rolling(window=n,center=False).mean())[n:] - 1).rename(columns={'Adj Close': 'Moving Average'})
-
     def _calculate_bb(self, df=None):
         n=self.bollinger_bands_window
         
@@ -96,6 +80,3 @@ class Ticker(object):
         upper_bound=ma+2*std
         lower_bound=ma-2*std
         return upper_bound.rename(columns={'Adj Close': 'BB Upper Bound'}), lower_bound.rename(columns={'Adj Close': 'BB Lower Bound'})
-
-    def _normalize(self, df):
-        return (df - df.mean())/df.std()

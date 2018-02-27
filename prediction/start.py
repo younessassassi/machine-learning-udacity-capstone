@@ -20,8 +20,8 @@ def run_prediction(X_train, X_test, y_train, y_test):
     # clf = svr_lin
     # clf = svr_poly
     # clf = svr_rbf
-    # clf =  LinearRegression()
-    clf = neighbors.KNeighborsRegressor()
+    clf =  LinearRegression()
+    # clf = neighbors.KNeighborsRegressor()
     # clf = RandomForestRegressor()
     # clf = neighbors.KNeighborsRegressor()
     clf.fit(X_train, y_train)
@@ -62,8 +62,8 @@ def create_classifier_for_symbol(symbol, stocks, start_date, end_date):
                  start_date=start_date, end_date=end_date)
     X_train = ticker.get_features()
     y_train = ticker.get_label()
-    clf = neighbors.KNeighborsRegressor()
-    # clf = LinearRegression()
+    # clf = neighbors.KNeighborsRegressor()
+    clf = LinearRegression()
     clf.fit(X_train, y_train)
     # pickle the classifier for use at a later time
     classifier_path = CLASSIFIER_PICKLE_DIR
@@ -106,17 +106,17 @@ def predict(tickers, start_date, end_date):
         predictions = run_classifier_for_symbol(symbol, stocks, start_date, end_date)
         actual_prices = get_ticker_data([symbol], start_date, end_date)
         print 'predictions for {} from {} to {}'.format(symbol, start_date, end_date)
-        print  predictions
+        print  predictions[7:]
         print 'actual prices for {} from {} to {}'.format(symbol, start_date, end_date)
-        print actual_prices
+        print actual_prices[7:].values.tolist()
 
 def run():
     start_date = '2017-01-01'
     end_date = '2017-12-31'
     tickers = ['AAPL', 'T']
-    run_model_validation(tickers, start_date, end_date)
-    generate_model(tickers, start_date, end_date)
-    start_date = '2018-01-01'
+    # run_model_validation(tickers, start_date, end_date)
+    # generate_model(tickers, start_date, end_date)
+    start_date = '2017-12-25'
     end_date = '2018-01-05'
     predict(tickers,start_date, end_date)
 
