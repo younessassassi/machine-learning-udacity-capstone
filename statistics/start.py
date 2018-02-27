@@ -5,7 +5,6 @@ from common.start import get_ticker_data, get_all_tickers
 from common.start import visualize_correlation, plot_data
 import scipy.optimize as spo
 
-#################################################################################
 """Find optimal allocations for a stock portfolio, optimizing for Sharpe ratio, given the daily prices"""
 def find_optimal_allocations(prices):
     guess = 1.0/prices.shape[1]
