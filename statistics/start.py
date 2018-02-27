@@ -23,8 +23,7 @@ def error_optimal_allocations(allocs, prices):
     error = sharpe_ratio * -1
     return error
 
-
-#################################################################################
+"""Calculate portfolio statistics"""
 def get_portfolio_statistics(portfolio_value, daily_rf=0, samples_per_year=252):
     cummulative_return = (portfolio_value[-1]/portfolio_value[0])-1
 
@@ -40,6 +39,7 @@ def get_portfolio_statistics(portfolio_value, daily_rf=0, samples_per_year=252):
 
     return cummulative_return, avg_daily_return, std_daily_return, sharpe_ratio
 
+"""Calculate the portfolio value"""
 def get_portfolio_value(stock_prices, allocations, starting_investment):
     #normalize the stock prices
     df = stock_prices / stock_prices.ix[0] 
@@ -52,11 +52,13 @@ def get_portfolio_value(stock_prices, allocations, starting_investment):
     
     return portfolio_value
 
+"""Retrieve the list of tickers used"""
 def get_tickers_used(stock_prices):
     # some stocks may not have been trading during the period selected.  
     # The dataframe only returns stocks that were atleast partially traded at the time
     return stock_prices.columns.values
 
+"""Retrieve a list of allocations used for each stock in the portfolio"""
 def get_allocations_used(tickers_used, allocations):
     allocations_used = allocations[:]
     if len(allocations_used) == 0:
@@ -65,15 +67,8 @@ def get_allocations_used(tickers_used, allocations):
     print 'Number of tickers used: ', len(allocations_used)
     return allocations_used
 
-def remove_tickers_with_zero_allocation(allocations, tickers):
-    index = 0
-    for allocation in allocations:
-        if allocation == 0:
-            np.delete(allocations, index)
-            np.delete(tickers, index)
-            print 'deleting ticker {} for its allocation is 0'.format(tickers[index])
-        index = index + 1
 
+"""Retrieve the top 10 stocks selected for the portfolio."""
 def get_top_tickers_alloc(tickers_used, allocations_used):
     price_alloc = pd.DataFrame({'Tickers': tickers_used, 'Allocations': allocations_used})
     price_alloc.set_index('Tickers', inplace=True)
@@ -85,9 +80,8 @@ def get_top_tickers_alloc(tickers_used, allocations_used):
         return price_alloc.head(10), is_reduced
 
     return price_alloc, is_reduced
-    
 
-
+"""Find the tickers and correspoding allocations that make up the optimal portfolio"""
 def get_top_optimal_tickers(prices):
     allocations_used = find_optimal_allocations(prices)
     allocations_used = allocations_used / np.sum(allocations_used)  # normalize allocations, if they don't sum to 1.0
@@ -95,6 +89,7 @@ def get_top_optimal_tickers(prices):
     return get_top_tickers_alloc(tickers_used, allocations_used)
     
 
+"""Get the tickers, their correspoding allocations and dataframe that make up the optimal portfolio"""
 def get_optimized_portfolio_params(prices):
     optimized_prices = prices.copy()
     price_alloc, is_reduced = get_top_optimal_tickers(prices)
@@ -122,7 +117,6 @@ def analyse_portfolio(tickers, allocations, start_date, end_date, starting_inves
         allocations_used = get_allocations_used(tickers_used, allocations)
 
     
-
     # Get daily portfolio value
     portfolio_values = get_portfolio_value(prices_without_SPY, allocations_used, starting_investment)
    
@@ -139,7 +133,6 @@ def analyse_portfolio(tickers, allocations, start_date, end_date, starting_inves
     print "Average Daily Return:", avg_daily_return
     print "Cumulative Return:", cummulative_return
 
-    # visualize_correlation(prices_without_SPY)
     # Compare daily portfolio value with SPY using a normalized plot
     combined_df = pd.concat([portfolio_values,  prices_with_SPY['SPY']], keys=['Portfolio', 'SPY'], axis=1)
     normalized_df = combined_df/combined_df.ix[0]
