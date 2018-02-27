@@ -2,27 +2,20 @@ import numpy as np
 import pandas as pd
 
 class Ticker(object):
-    def __init__(self, symbol=None, stocks={},
-                 start_date=None, end_date=None, volatility_window=3,
-                 momentum_window=3, bollinger_bands_window=3, moving_average_window=3):
+    def __init__(self, symbol=None, data_df={}, window=5):
         self.symbol=symbol
-        self.max_window=max(momentum_window, bollinger_bands_window, moving_average_window)
-        self.momentum_window=momentum_window
-        self.moving_average_window=moving_average_window
-        self.bollinger_bands_window=bollinger_bands_window
+        self.window = window
+        self.momentum_window=window
+        self.moving_average_window=window
+        self.bollinger_bands_window=window
         
-        dates = pd.date_range(start_date, end_date)
-
-        stock = stocks[symbol]
-        features_df = pd.DataFrame(index=dates)
-
-        features_df = features_df.join(stock)
+        features_df = data_df.copy()
  
         features_df.rename(columns={symbol: 'Adj Close'}, inplace=True)
  
         features_df.fillna(method='ffill', inplace=True)
         features_df.fillna(method='bfill', inplace=True)
-        features_df.dropna()
+        features_df.dropna(inplace=True)
         
         self.original_df=features_df.copy()
         features_df=features_df.join(self._calculate_daily_returns(df=self.original_df))
@@ -54,6 +47,14 @@ class Ticker(object):
         df = self._get_clean_df()
         label = df['Next Day Adj Close']
         return label
+
+    def get_adj_close_df(self):
+        df = self._get_clean_df()
+        return df[['Adj Close']]
+
+    def get_next_day_df(self):
+        df = self._get_clean_df()
+        return df[['Next Day Adj Close']]
     
     def _add_next_day_price(self, df=None):
         return (df.shift(-1)).rename(columns={'Adj Close': 'Next Day Adj Close'})

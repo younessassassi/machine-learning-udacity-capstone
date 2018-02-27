@@ -14,7 +14,6 @@ TICKERS_PICKLE_DIR = DATA_DIR + "sp500tickers.pickle"
 CLASSIFIER_PICKLE_DIR = DATA_DIR + "classifiers/"
 TICKER_STATS_DIR = DATA_DIR + "ticker_stats/"
 
-
 """Retrieve the list of S&P 500 tickers"""
 def get_all_tickers():
     tickers = False
@@ -30,6 +29,14 @@ def get_all_tickers():
 def get_ticker_path(ticker):
     return STOCK_DF_DIR + '/{}.csv'.format(ticker)
 
+"""Returns two dataframes that contain adj close for each of the symbols provided plus the S&P index"""
+def get_prices(symbols, start_date, end_date):
+    symbols_with_SPY = symbols[:]
+    symbols_with_SPY.append('SPY')
+    prices_with_SPY = get_ticker_data(symbols_with_SPY, start_date, end_date)
+    prices_without_SPY = prices_with_SPY.drop('SPY', axis=1)
+    return prices_without_SPY, prices_with_SPY
+
 """Reads adjusted close stock data for given tickers from CSV files."""
 def get_ticker_data(tickers=None, start_date='2006-01-03', end_date='2018-02-23'):
     if not tickers:
@@ -41,18 +48,16 @@ def get_ticker_data(tickers=None, start_date='2006-01-03', end_date='2018-02-23'
 
     for ticker in tickers:
         df_temp = pd.read_csv(get_ticker_path(ticker), index_col='Date',
-                parse_dates=True, usecols=['Date', 'Adj Close'], na_values=['nan'])
+                parse_dates=True, usecols=['Date', 'Adj Close'], na_values=np.nan)
         df_temp = df_temp.rename(columns={'Adj Close': ticker})
        
         df = df.join(df_temp)
         if ticker == 'SPY':  # drop dates SPY did not trade
             df.dropna(subset=["SPY"], inplace=True)
 
-        df.fillna(method="ffill",inplace=True) # fill na forward
-        df.fillna(method="bfill",inplace=True) # fill na backward
-        df.dropna(axis=1, inplace=True) # if stock did not trade at all during specified period then drop it
     return df
 
+"""Retrieve the list tickers that make up the S&P index"""
 def save_sp500_tickers():
     resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
     soup = bs.BeautifulSoup(resp.text, 'lxml')
@@ -71,7 +76,7 @@ def plot_data(df, title="Stock performance", xlabel="Date", ylabel="Price"):
     ax = df.plot(title=title, fontsize=12)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1))
+    plt.legend(loc=2)
     plt.show()
 
 """ Visualize correlation between stocks on a df."""
@@ -119,6 +124,7 @@ def store_pickle(data, filename, path):
     with open(path+filename, "wb") as f:
         pickle.dump(data, f)
 
+"""Store the stock analysis data in a csv file"""
 def store_ticker_analysis(df, symbol):
     if not os.path.exists(TICKER_STATS_DIR):
         os.makedirs(TICKER_STATS_DIR)
