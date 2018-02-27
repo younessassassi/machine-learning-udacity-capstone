@@ -13,12 +13,8 @@ STOCK_DF_DIR = DATA_DIR + "stock_dfs"
 TICKERS_PICKLE_DIR = DATA_DIR + "sp500tickers.pickle"
 CLASSIFIER_PICKLE_DIR = DATA_DIR + "classifiers/"
 
-# # spy_df_directory = data_directory + "sp_index"
-# # sp500_joined_closes = data_directory+'sp500_joined_closes.csv'
-# # sp500_reduced_joined_closes = data_directory+'sp500_reduced_joined_closes.csv'
-# # sp_index = spy_df_directory+'/spy.csv'
-# # sp500_index_reduced = data_directory+'sp500_index_reduced.csv'
 
+"""Retrieve the list of S&P 500 tickers"""
 def get_all_tickers():
     tickers = False
     with open(TICKERS_PICKLE_DIR, "rb") as f:
