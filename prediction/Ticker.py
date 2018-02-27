@@ -55,7 +55,7 @@ class Ticker(object):
     def get_label(self):
         df = self._get_clean_df()
         label = df['Label']
-        return label.values
+        return label
     
     
     def _add_label_price(self, df=None):
