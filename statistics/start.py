@@ -4,7 +4,7 @@ from prediction.Ticker import Ticker
 import pandas as pd
 import numpy as np
 from common.start import get_ticker_data, get_all_tickers, get_prices
-from common.start import visualize_correlation, plot_data
+from common.start import visualize_correlation, plot_data, get_tickers_for_symbols
 import scipy.optimize as spo
 
 """Find optimal allocations for a stock portfolio, optimizing for Sharpe ratio, given the daily prices"""
@@ -118,18 +118,6 @@ def compare_to_SP(portfolio):
     combined_df = pd.concat([portfolio.value,  portfolio_sp.value], keys=['Portfolio', 'SPY'], axis=1)
     normalized_df = combined_df/combined_df.ix[0]
     plot_data(normalized_df)
-
-def get_tickers_for_symbols(symbols, start_date, end_date):
-    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
-    tickers = None
-    for symbol in symbols:
-        ticker = Ticker(symbol=symbol, data_df=prices_df[[symbol]])
-        if tickers == None:
-            tickers = [ticker]
-        else: 
-            tickers.append(ticker)
-
-    return tickers
 
 """ You can change the stock, allocation, investment and date to get new values. """
 def run():

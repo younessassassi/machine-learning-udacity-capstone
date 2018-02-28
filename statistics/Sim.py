@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 """Trade simulation class"""
 
@@ -10,14 +11,56 @@ class Sim(object):
         self.end = end
         
         #set up the data frame for the stocks over the period
-        self.daily_prices = portfolio_get_stock_prices()
-        self.daily_prices['Investment'] = 1.0
+        self.daily_prices = portfolio._get_ticker_prices()
+        
+        #set 
+        self.weights = self.portfolio.weights
+
+        self.trades_df = self.daily_prices.copy()
+        self.trades_df[0:] = 0.0
+        self.trades_df['Residual'] = 0.0
+        self.trades_df['Cash'] = 0.0
+
+        pass 
+
+    def get_trade_count(self, price, weight, investment):
+        # number of shares you can purchase
+        count = (investment * weight) / price
+        return count
+        
+        # count = (cash * weight) / symbol price
+        # # residual cash
+        # res_cash = (cash * weight) % symbol price
+
+    def prepare_trades(self):
+        #step through the trades data frame
+        cash_total = self.portfolio.investment
+        for index, row in self.trades_df.iterrows():
+            for symbol in self.portfolio.symbols:
+                row[symbol] = self.get_trade_count(self.daily_prices.loc[index, symbol], self.portfolio.weight_dict[symbol], cash_total)
+        
+            # for ind, val in row.iterrows():
+            #     print 'ind: ', ind
+            #     print 'val: ', val
+            
+            # symbol = row['Symbol']
+            # share_count = row['Shares']
+        pass
+       
 
 
-        self.trades = self.daily_prices.copy()
-        self.trades[0:] = 0.0
-        self.trades.loc[0:, 'Cash'] = 10000
+    def start_trading(self):
+        pass
+        # self.calculated_prices = 
 
+    def describe(self):
+        print "Simulation Object"
+
+    def get_trades_df(self):
+        return self.trades_df
+
+    def get_original_prices(self):
+        return self.daily_prices
     
 
     # #step through the orders frame and for each order update the trades table

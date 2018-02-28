@@ -15,7 +15,8 @@ class Portfolio(object):
         self.investment = investment
         self.ticker_prices = self._get_ticker_prices()
         self.value = self.get_value()
-
+        self.symbols = [ticker.symbol for ticker in tickers]
+        
         self.cummulative_return = (self.value[-1]/self.value[0])-1
 
         self.daily_returns = self.value.copy()
@@ -27,13 +28,21 @@ class Portfolio(object):
 
         #sharpe ratio - average return earned in excess of the risk-free rate per unit of volatility or total risk
         self.sharpe_ratio = ((self.daily_returns - self.daily_rf).mean()/self.daily_returns.std()) * np.sqrt(self.samples_per_year)
-
+        self.weight_dict = self.get_weight_dict()
         pass
+
+    def get_weight_dict(self):
+        weight_dict = {}
+        for symbol in self.symbols:
+            for weight in self.weights:
+                weight_dict[symbol] = weight
+        return weight_dict
+
 
     """" Print important class information """
     def describe(self):
         print 'Portfolio stats From {} to {}'.format(self.start_date, self.end_date)
-        print 'Ticker Symbols: ', [ticker.symbol for ticker in self.tickers]
+        print 'Ticker Symbols: ', self.symbols
         print 'Corresponding Weights: ', self.weights
         print 'Sharpe Ratio: ', self.sharpe_ratio
         print 'Volatility: ', self.volatility

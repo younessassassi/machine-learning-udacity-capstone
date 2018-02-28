@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 
+from prediction.Ticker import Ticker
 from matplotlib import style
 import numpy as np
 
@@ -55,6 +56,19 @@ def get_ticker_data(tickers=None, start_date='2006-01-03', end_date='2018-02-23'
             df.dropna(subset=["SPY"], inplace=True)
 
     return df
+
+"""Get a list of Ticker objects using the symbols and date range"""
+def get_tickers_for_symbols(symbols, start_date, end_date):
+    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
+    tickers = None
+    for symbol in symbols:
+        ticker = Ticker(symbol=symbol, data_df=prices_df[[symbol]])
+        if tickers == None:
+            tickers = [ticker]
+        else: 
+            tickers.append(ticker)
+
+    return tickers
 
 """Retrieve the list tickers that make up the S&P index"""
 def save_sp500_tickers():

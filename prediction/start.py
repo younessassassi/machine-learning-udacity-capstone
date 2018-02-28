@@ -7,8 +7,10 @@ from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import cross_val_score
-from prediction.Ticker import TickerAnalysed
-from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data
+from statistics.Portfolio import Portfolio
+from prediction.Ticker import TickerAnalysed, Ticker
+from statistics.Sim import Sim
+from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data, get_tickers_for_symbols
 from common.start import store_pickle, get_pickle, store_ticker_analysis, CLASSIFIER_PICKLE_DIR
 
 def run_prediction(X_train, X_test, y_train, y_test):
@@ -80,18 +82,41 @@ def analyze_features(ticker):
 
 
 def run():
-    start_date = '2014-01-01'
-    end_date = '2018-02-15'
-    symbols = symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    start_date = '2018-02-05'
+    end_date = '2018-02-07'
+    # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    symbols = ['T', 'IBM']
+    weights = [0.5, 0.5]
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
+    investment = 1000 # $100,000.00 as starting investment
+    # weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
+    tickers = get_tickers_for_symbols(symbols, start_date, end_date)
+    portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
+    simulation = Sim(portfolio, start_date, end_date)
+    print '---------------------------'
+    print 'Simulation for'
+    print '---------------------------'
+    portfolio.describe()
+    print '---------------------------'
+    print 'Original prices'
+    print '---------------------------'
+    print simulation.get_original_prices()
+    print '---------------------------'
+    print 'Trades'
+    print '---------------------------'
+    print simulation.get_trades_df()
+    simulation.prepare_trades()
+    print simulation.get_trades_df()
     
-    for symbol in symbols:
-        ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-        analyze_features(ticker)
-        cross_validate(ticker)
-        generate_model(ticker)
-        prediction_df = predict(ticker)
-        plot_data(prediction_df.tail(10), title="Prediction vs actual")
+    # for symbol in symbols:
+    #     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
+    #     analyze_features(ticker)
+    #     cross_validate(ticker)
+    #     generate_model(ticker)
+    #     prediction_df = predict(ticker)
+    #     plot_data(prediction_df.tail(10), title="Prediction vs actual")
+
+
 
 if __name__ == "__main__":
     run()
