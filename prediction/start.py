@@ -82,7 +82,7 @@ def analyze_features(ticker):
 def run():
     start_date = '2014-01-01'
     end_date = '2018-02-15'
-    symbols = ['AAPL', 'T']
+    symbols = symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     
     for symbol in symbols:

@@ -133,12 +133,14 @@ def get_tickers_for_symbols(symbols, start_date, end_date):
 
 """ You can change the stock, allocation, investment and date to get new values. """
 def run():
-    start_date = '2017-11-01'
+    start_date = '2017-01-01'
     end_date = '2017-12-31'
     investment = 100000 # $100,000.00 as starting investment
-    symbols = ['T', 'IBM']
+    # symbols = ['T', 'IBM']
     # symbols = get_all_tickers()
-    weights = get_allocations_used(symbols, [])
+    # weights = get_allocations_used(symbols, [])
+    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
     # Ticker Symbols:  [u'CME', u'WM', u'ED', u'NVDA', u'TWX', u'NEM', u'OKE', u'UNH', u'AMD', u'MLM']
     # Corresponding Weights:  [0.20183905313396344, 0.14482716986241267, 0.1379526466262745, 0.09841316051074742, 0.09361963471432375, 0.060075510494126, 0.05571434472502594, 0.03326697181012652, 0.031004421055023254, 0.030077208360923157]
     # weights = [0.5, 0.5]
@@ -155,11 +157,11 @@ def run():
     tickers = get_tickers_for_symbols(symbols, start_date, end_date)
 
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
-    # print 'Before Optimization'
-    # print '---------------------------'
-    # print 'Comparing portfoltio to S&P'
-    # print '---------------------------'
-    # compare_to_SP(portfolio)
+    print 'Before Optimization'
+    print '---------------------------'
+    print 'Comparing portfoltio to S&P'
+    print '---------------------------'
+    compare_to_SP(portfolio)
 
     optimized_portfolio = optimize_portfolio(portfolio)
     print '---------------------------'
