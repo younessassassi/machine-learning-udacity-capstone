@@ -1,7 +1,9 @@
 """Stock portfolio analysis"""
+from statistics.Portfolio import Portfolio
+from prediction.Ticker import Ticker
 import pandas as pd
 import numpy as np
-from common.start import get_ticker_data, get_all_tickers
+from common.start import get_ticker_data, get_all_tickers, get_prices
 from common.start import visualize_correlation, plot_data
 import scipy.optimize as spo
 
@@ -142,18 +144,30 @@ def analyse_portfolio(tickers, allocations, start_date, end_date, starting_inves
 Some default options are provided, though these can be changed to the stock, allocation, and date of your choice. """
 def run():
     start_date = '2011-01-01'
-    end_date = '2011-01-05'
-    starting_investment = 100000 # $100,000.00 as starting investment
-    tickers = ['GM','AZO','HRL','EW','DLTR','ILMN','AAP','NFLX','COO','CTL']
-    allocations = [0.45405982,  0.16671612,  0.10584246,  0.07070163,  0.05952742,  0.03734693,  0.03629906,  0.02284556,  0.02190905,  0.0202729 ]
-    # tickers = ['IBM', 'T', 'VZ', 'MO', 'MMM', 'ABBV', 'ALK', 'ARE', 'AAPL', 'AMAT', 'AIZ', 'BK', 'BBT']
-    # allocations = [0.1, 0, 0.9] # allocations must add up to 1
-    # tickers = get_all_tickers()
-    # allocations = []
-    optimize = False
+    end_date = '2011-01-10'
+    investment = 100000 # $100,000.00 as starting investment
+    # tickers = ['GM','AZO','HRL','EW','DLTR','ILMN','AAP','NFLX','COO','CTL']
+    # allocations = [0.45405982,  0.16671612,  0.10584246,  0.07070163,  0.05952742,  0.03734693,  0.03629906,  0.02284556,  0.02190905,  0.0202729 ]
+    # # tickers = ['IBM', 'T', 'VZ', 'MO', 'MMM', 'ABBV', 'ALK', 'ARE', 'AAPL', 'AMAT', 'AIZ', 'BK', 'BBT']
+    # # allocations = [0.1, 0, 0.9] # allocations must add up to 1
+    # # tickers = get_all_tickers()
+    # # allocations = []
+    # optimize = False
     
-    analyse_portfolio(tickers, allocations, start_date, end_date, starting_investment, optimize)
+    # analyse_portfolio(tickers, allocations, start_date, end_date, investment, optimize)
+    symbols = ['T', 'IBM']
+    weights = [0.5, 0.5]
+    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
+    tickers = None
+    for symbol in symbols:
+        ticker = Ticker(symbol=symbol, data_df=prices_df[[symbol]])
+        if tickers == None:
+            tickers = [ticker]
+        else: 
+            tickers.append(ticker)
 
+    portfolio = Portfolio(tickers, weights, investment)
+    print 'value: ', portfolio.get_value()
 
 if __name__ == "__main__":
     run()

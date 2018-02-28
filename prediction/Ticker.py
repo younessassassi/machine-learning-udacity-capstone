@@ -32,10 +32,13 @@ class Ticker(object):
     def _get_clean_df(self):
         df = self.df.copy()
         df.replace('', np.nan, inplace=True)
+        df.fillna(method='ffill', inplace=True)
+        df.fillna(method='bfill', inplace=True)
+        df.dropna(inplace=True)
         # daily returns equaling 0 seems to indicate a non trading day
         df['Daily Returns'].replace(0, np.nan, inplace=True)
         df.dropna(inplace=True)
-      
+        
         return df
 
     def get_features(self):
