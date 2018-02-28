@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 class Ticker(object):
     def __init__(self, symbol=None, data_df={}, window=5):
