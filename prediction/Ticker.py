@@ -1,8 +1,30 @@
 import numpy as np
 
 class Ticker(object):
-    def __init__(self, symbol=None, data_df={}, window=5):
+    def __init__(self, symbol=None, data_df={}):
         self.symbol=symbol
+        self.df = data_df.rename(columns={symbol: 'Adj Close'})
+
+        pass
+
+    def _get_clean_df(self):
+        df = self.df.copy()
+        df.replace('', np.nan, inplace=True)
+        df.fillna(method='ffill', inplace=True)
+        df.fillna(method='bfill', inplace=True)
+        df.dropna(inplace=True)
+        
+        return df
+
+    def get_adj_close_df(self):
+        df = self._get_clean_df()
+        return df[['Adj Close']]
+
+
+
+class TickerAnalysed(Ticker):
+    def __init__(self, symbol=None, data_df={}, window=5):
+        Ticker.__init__(self, symbol, data_df)
         self.window = window
         self.momentum_window=window
         self.moving_average_window=window
@@ -28,14 +50,6 @@ class Ticker(object):
         
         pass
     
-    def _get_clean_df(self):
-        df = self.df.copy()
-        df.replace('', np.nan, inplace=True)
-        df.fillna(method='ffill', inplace=True)
-        df.fillna(method='bfill', inplace=True)
-        df.dropna(inplace=True)
-        
-        return df
 
     def get_features(self):
         features = self._get_clean_df()
@@ -46,10 +60,6 @@ class Ticker(object):
         df = self._get_clean_df()
         label = df['Next Day Adj Close']
         return label
-
-    def get_adj_close_df(self):
-        df = self._get_clean_df()
-        return df[['Adj Close']]
 
     def get_next_day_df(self):
         df = self._get_clean_df()

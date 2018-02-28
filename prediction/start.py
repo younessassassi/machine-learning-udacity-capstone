@@ -7,7 +7,7 @@ from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import cross_val_score
-from prediction.Ticker import Ticker
+from prediction.Ticker import TickerAnalysed
 from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data
 from common.start import store_pickle, get_pickle, store_ticker_analysis, CLASSIFIER_PICKLE_DIR
 
@@ -86,7 +86,7 @@ def run():
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     
     for symbol in symbols:
-        ticker = Ticker(symbol=symbol, data_df=prices_df[[symbol]])
+        ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
         analyze_features(ticker)
         cross_validate(ticker)
         generate_model(ticker)

@@ -95,8 +95,7 @@ def optimize_portfolio(portfolio):
     symbol_alloc, is_reduced = get_top_optimal_symbols(portfolio.ticker_prices)
     if is_reduced:
         symbols_used = symbol_alloc.index.values
-        optimized_prices = prices[symbols_used]
-        symbol_alloc, is_reduced = get_top_optimal_symbols(prices)
+        symbol_alloc, is_reduced = get_top_optimal_symbols(portfolio.ticker_prices)
     
     symbols_used = symbol_alloc.index.values.tolist()
     allocations_used = symbol_alloc['Allocations'].values.tolist()
@@ -134,11 +133,15 @@ def get_tickers_for_symbols(symbols, start_date, end_date):
 
 """ You can change the stock, allocation, investment and date to get new values. """
 def run():
-    start_date = '2016-01-01'
-    end_date = '2016-12-31'
+    start_date = '2017-11-01'
+    end_date = '2017-12-31'
     investment = 100000 # $100,000.00 as starting investment
     symbols = ['T', 'IBM']
-    weights = [0.5, 0.5]
+    # symbols = get_all_tickers()
+    weights = get_allocations_used(symbols, [])
+    # Ticker Symbols:  [u'CME', u'WM', u'ED', u'NVDA', u'TWX', u'NEM', u'OKE', u'UNH', u'AMD', u'MLM']
+    # Corresponding Weights:  [0.20183905313396344, 0.14482716986241267, 0.1379526466262745, 0.09841316051074742, 0.09361963471432375, 0.060075510494126, 0.05571434472502594, 0.03326697181012652, 0.031004421055023254, 0.030077208360923157]
+    # weights = [0.5, 0.5]
     # tickers = ['GM','AZO','HRL','EW','DLTR','ILMN','AAP','NFLX','COO','CTL']
     # allocations = [0.45405982,  0.16671612,  0.10584246,  0.07070163,  0.05952742,  0.03734693,  0.03629906,  0.02284556,  0.02190905,  0.0202729 ]
     # # tickers = ['IBM', 'T', 'VZ', 'MO', 'MMM', 'ABBV', 'ALK', 'ARE', 'AAPL', 'AMAT', 'AIZ', 'BK', 'BBT']
@@ -152,11 +155,11 @@ def run():
     tickers = get_tickers_for_symbols(symbols, start_date, end_date)
 
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
-    print 'Before Optimization'
-    print '---------------------------'
-    print 'Comparing portfoltio to S&P'
-    print '---------------------------'
-    compare_to_SP(portfolio)
+    # print 'Before Optimization'
+    # print '---------------------------'
+    # print 'Comparing portfoltio to S&P'
+    # print '---------------------------'
+    # compare_to_SP(portfolio)
 
     optimized_portfolio = optimize_portfolio(portfolio)
     print '---------------------------'
