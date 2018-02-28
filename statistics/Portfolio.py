@@ -3,8 +3,11 @@ from prediction.Ticker import Ticker
 import numpy as np
 
 class Portfolio(object):
-    def __init__(self, tickers, weights, investment=1, 
-                daily_rf=0, samples_per_year=252):
+    def __init__(self, tickers, weights, start_date, end_date, 
+                investment=1, daily_rf=0, samples_per_year=252):
+        
+        self.start_date = start_date
+        self.end_date = end_date
         self.daily_rf = daily_rf
         self.samples_per_year = samples_per_year
         self.tickers = tickers
@@ -20,7 +23,7 @@ class Portfolio(object):
         self.daily_returns.ix[0, 0] = 0 #set the first number to 0
 
         self.avg_daily_return = self.daily_returns.mean()
-        self.std_daily_return = self.daily_returns.std()
+        self.volatility = self.daily_returns.std()
 
         #sharpe ratio - average return earned in excess of the risk-free rate per unit of volatility or total risk
         self.sharpe_ratio = ((self.daily_returns - self.daily_rf).mean()/self.daily_returns.std()) * np.sqrt(self.samples_per_year)
@@ -29,12 +32,15 @@ class Portfolio(object):
 
     """" Print important class information """
     def describe(self):
+        print 'Portfolio stats From {} to {}'.format(self.start_date, self.end_date)
         print 'Ticker Symbols: ', [ticker.symbol for ticker in self.tickers]
         print 'Corresponding Weights: ', self.weights
         print 'Sharpe Ratio: ', self.sharpe_ratio
+        print 'Volatility: ', self.volatility
+        print 'Average Daily Return: ', self.avg_daily_return
         print 'Starting Investment: ${:,.2f}'.format(self.investment)
         print 'Ending portfolio value: ${:,.2f}'.format(self.value[-1])
-        print 'Cummulative Return {0:.3f}%'.format(self.cummulative_return)
+        print 'Cummulative Return {0:.2f}%'.format(self.cummulative_return*100)
 
 
     """ returns a dataframe with adj close price of all tickers in the portfolio"""

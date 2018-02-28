@@ -30,7 +30,7 @@ def get_ticker_path(ticker):
     return STOCK_DF_DIR + '/{}.csv'.format(ticker)
 
 """Returns two dataframes that contain adj close for each of the symbols provided plus the S&P index"""
-def get_prices(symbols, start_date, end_date):
+def get_prices(symbols, start_date, end_date, with_spy=True):
     symbols_with_SPY = symbols[:]
     symbols_with_SPY.append('SPY')
     prices_with_SPY = get_ticker_data(symbols_with_SPY, start_date, end_date)
@@ -50,7 +50,6 @@ def get_ticker_data(tickers=None, start_date='2006-01-03', end_date='2018-02-23'
         df_temp = pd.read_csv(get_ticker_path(ticker), index_col='Date',
                 parse_dates=True, usecols=['Date', 'Adj Close'], na_values=np.nan)
         df_temp = df_temp.rename(columns={'Adj Close': ticker})
-       
         df = df.join(df_temp)
         if ticker == 'SPY':  # drop dates SPY did not trade
             df.dropna(subset=["SPY"], inplace=True)

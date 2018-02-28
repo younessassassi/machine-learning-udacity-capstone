@@ -34,9 +34,6 @@ class Ticker(object):
         df.fillna(method='ffill', inplace=True)
         df.fillna(method='bfill', inplace=True)
         df.dropna(inplace=True)
-        # daily returns equaling 0 seems to indicate a non trading day
-        df['Daily Returns'].replace(0, np.nan, inplace=True)
-        df.dropna(inplace=True)
         
         return df
 

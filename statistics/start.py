@@ -53,110 +53,74 @@ def get_portfolio_value(stock_prices, allocations, starting_investment):
     
     return portfolio_value
 
-"""Retrieve the list of tickers used"""
-def get_tickers_used(stock_prices):
+"""Retrieve the list of symbols used"""
+def get_symbols_used(stock_prices):
     # some stocks may not have been trading during the period selected.  
     # The dataframe only returns stocks that were atleast partially traded at the time
     return stock_prices.columns.values
 
 """Retrieve a list of allocations used for each stock in the portfolio"""
-def get_allocations_used(tickers_used, allocations):
+def get_allocations_used(symbols_used, allocations):
     allocations_used = allocations[:]
     if len(allocations_used) == 0:
-        for ticker in tickers_used:
-            allocations_used.append(1/float(len(tickers_used)))
+        for symbol in symbols_used:
+            allocations_used.append(1/float(len(symbols_used)))
     print 'Number of tickers used: ', len(allocations_used)
     return allocations_used
 
 
 """Retrieve the top 10 stocks selected for the portfolio."""
-def get_top_tickers_alloc(tickers_used, allocations_used):
-    price_alloc = pd.DataFrame({'Tickers': tickers_used, 'Allocations': allocations_used})
-    price_alloc.set_index('Tickers', inplace=True)
-    price_alloc.sort_values('Allocations', ascending=False, inplace=True)
-    rows, columns = price_alloc.shape
+def get_top_tickers_alloc(symbols_used, allocations_used):
+    symbol_alloc = pd.DataFrame({'Tickers': symbols_used, 'Allocations': allocations_used})
+    symbol_alloc.set_index('Tickers', inplace=True)
+    symbol_alloc.sort_values('Allocations', ascending=False, inplace=True)
+    rows, columns = symbol_alloc.shape
     is_reduced = False
     if rows > 10:
         is_reduced = True
-        return price_alloc.head(10), is_reduced
+        return symbol_alloc.head(10), is_reduced
 
-    return price_alloc, is_reduced
+    return symbol_alloc, is_reduced
 
 """Find the tickers and correspoding allocations that make up the optimal portfolio"""
-def get_top_optimal_tickers(prices):
+def get_top_optimal_symbols(prices):
     allocations_used = find_optimal_allocations(prices)
     allocations_used = allocations_used / np.sum(allocations_used)  # normalize allocations, if they don't sum to 1.0
-    tickers_used = get_tickers_used(prices)
-    return get_top_tickers_alloc(tickers_used, allocations_used)
+    symbols_used = get_symbols_used(prices)
+    return get_top_tickers_alloc(symbols_used, allocations_used)
     
 
 """Get the tickers, their correspoding allocations and dataframe that make up the optimal portfolio"""
-def get_optimized_portfolio_params(prices):
-    optimized_prices = prices.copy()
-    price_alloc, is_reduced = get_top_optimal_tickers(prices)
+def optimize_portfolio(portfolio):
+    symbol_alloc, is_reduced = get_top_optimal_symbols(portfolio.ticker_prices)
     if is_reduced:
-        tickers_used = price_alloc.index.values
-        optimized_prices = prices[tickers_used]
-        price_alloc, is_reduced = get_top_optimal_tickers(prices)
+        symbols_used = symbol_alloc.index.values
+        optimized_prices = prices[symbols_used]
+        symbol_alloc, is_reduced = get_top_optimal_symbols(prices)
     
-    tickers_used = price_alloc.index.values
-    allocations_used = price_alloc['Allocations'].values
-    return optimized_prices, tickers_used, allocations_used
+    symbols_used = symbol_alloc.index.values.tolist()
+    allocations_used = symbol_alloc['Allocations'].values.tolist()
+    tickers = get_tickers_for_symbols(symbols_used, portfolio.start_date, portfolio.end_date)
+    return Portfolio(tickers, allocations_used, 
+                    portfolio.start_date, portfolio.end_date, portfolio.investment)
     
+ 
+def compare_to_SP(portfolio):
+    symbols = ['SPY']
+    weights = [1]
+    prices_df = get_ticker_data(symbols, portfolio.start_date, portfolio.end_date)
+    tickers = [Ticker(symbol=symbols[0], data_df=prices_df)]
 
-"""Compare performance with the S&P500 for the same period"""
-def analyse_portfolio(tickers, allocations, start_date, end_date, starting_investment, optimize=False):
-    tickers_with_SPY = tickers[:]
-    tickers_with_SPY.append('SPY')
-    prices_with_SPY = get_ticker_data(tickers_with_SPY, start_date, end_date)
-    prices_without_SPY = prices_with_SPY.drop('SPY', axis=1)
-    
-    if optimize:
-       prices_without_SPY, tickers_used, allocations_used = get_optimized_portfolio_params(prices_without_SPY)
-    else:
-        tickers_used = get_tickers_used(prices_without_SPY)
-        allocations_used = get_allocations_used(tickers_used, allocations)
-
-    
-    # Get daily portfolio value
-    portfolio_values = get_portfolio_value(prices_without_SPY, allocations_used, starting_investment)
-   
-    # Get portfolio statistics
-    cummulative_return, avg_daily_return, std_daily_return, sharpe_ratio = get_portfolio_statistics(portfolio_values)
-
-    # Print statistics
-    print "Start Date:", start_date
-    print "End Date:", end_date
-    print "Tickers:", tickers_used
-    print "Allocations used:", allocations_used
-    print "Sharpe Ratio:", sharpe_ratio
-    print "Volatility:", std_daily_return
-    print "Average Daily Return:", avg_daily_return
-    print "Cumulative Return:", cummulative_return
-
+    portfolio_sp = Portfolio(tickers, weights, portfolio.start_date, portfolio.end_date, portfolio.investment)
+    portfolio.describe()
+    print '---------------------------'
+    portfolio_sp.describe()
     # Compare daily portfolio value with SPY using a normalized plot
-    combined_df = pd.concat([portfolio_values,  prices_with_SPY['SPY']], keys=['Portfolio', 'SPY'], axis=1)
+    combined_df = pd.concat([portfolio.value,  portfolio_sp.value], keys=['Portfolio', 'SPY'], axis=1)
     normalized_df = combined_df/combined_df.ix[0]
     plot_data(normalized_df)
- 
 
-"""Though this class is mostly used for helper functions, you can execute all of them here for testing.
-Some default options are provided, though these can be changed to the stock, allocation, and date of your choice. """
-def run():
-    start_date = '2011-01-01'
-    end_date = '2011-01-10'
-    investment = 100000 # $100,000.00 as starting investment
-    # tickers = ['GM','AZO','HRL','EW','DLTR','ILMN','AAP','NFLX','COO','CTL']
-    # allocations = [0.45405982,  0.16671612,  0.10584246,  0.07070163,  0.05952742,  0.03734693,  0.03629906,  0.02284556,  0.02190905,  0.0202729 ]
-    # # tickers = ['IBM', 'T', 'VZ', 'MO', 'MMM', 'ABBV', 'ALK', 'ARE', 'AAPL', 'AMAT', 'AIZ', 'BK', 'BBT']
-    # # allocations = [0.1, 0, 0.9] # allocations must add up to 1
-    # # tickers = get_all_tickers()
-    # # allocations = []
-    # optimize = False
-    
-    # analyse_portfolio(tickers, allocations, start_date, end_date, investment, optimize)
-    symbols = ['T', 'IBM']
-    weights = [0.5, 0.5]
+def get_tickers_for_symbols(symbols, start_date, end_date):
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     tickers = None
     for symbol in symbols:
@@ -166,8 +130,43 @@ def run():
         else: 
             tickers.append(ticker)
 
-    portfolio = Portfolio(tickers, weights, investment)
-    portfolio.describe()
+    return tickers
+
+""" You can change the stock, allocation, investment and date to get new values. """
+def run():
+    start_date = '2016-01-01'
+    end_date = '2016-12-31'
+    investment = 100000 # $100,000.00 as starting investment
+    symbols = ['T', 'IBM']
+    weights = [0.5, 0.5]
+    # tickers = ['GM','AZO','HRL','EW','DLTR','ILMN','AAP','NFLX','COO','CTL']
+    # allocations = [0.45405982,  0.16671612,  0.10584246,  0.07070163,  0.05952742,  0.03734693,  0.03629906,  0.02284556,  0.02190905,  0.0202729 ]
+    # # tickers = ['IBM', 'T', 'VZ', 'MO', 'MMM', 'ABBV', 'ALK', 'ARE', 'AAPL', 'AMAT', 'AIZ', 'BK', 'BBT']
+    # # allocations = [0.1, 0, 0.9] # allocations must add up to 1
+    # # tickers = get_all_tickers()
+    # # allocations = []
+    # optimize = False
+    
+    # analyse_portfolio(symbols, weights, start_date, end_date, investment, optimize)
+    
+    tickers = get_tickers_for_symbols(symbols, start_date, end_date)
+
+    portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
+    print 'Before Optimization'
+    print '---------------------------'
+    print 'Comparing portfoltio to S&P'
+    print '---------------------------'
+    compare_to_SP(portfolio)
+
+    optimized_portfolio = optimize_portfolio(portfolio)
+    print '---------------------------'
+    print 'After Optimization: '
+    print '---------------------------'
+    optimized_portfolio.describe()
+    print '---------------------------'
+    print 'Comparing portfoltio to S&P'
+    print '---------------------------'
+    compare_to_SP(optimized_portfolio)
 
 if __name__ == "__main__":
     run()
