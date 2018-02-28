@@ -167,7 +167,7 @@ def run():
             tickers.append(ticker)
 
     portfolio = Portfolio(tickers, weights, investment)
-    print 'sharpe ratio: ', portfolio.sharpe_ratio
+    portfolio.describe()
 
 if __name__ == "__main__":
     run()

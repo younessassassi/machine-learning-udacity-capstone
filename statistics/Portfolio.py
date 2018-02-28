@@ -3,14 +3,13 @@ from prediction.Ticker import Ticker
 import numpy as np
 
 class Portfolio(object):
-    def __init__(self, tickers, weights, investment=1, optimize=False,
-        daily_rf=0, samples_per_year=252):
+    def __init__(self, tickers, weights, investment=1, 
+                daily_rf=0, samples_per_year=252):
         self.daily_rf = daily_rf
         self.samples_per_year = samples_per_year
         self.tickers = tickers
         self.weights = weights
         self.investment = investment
-        self.optimize = optimize
         self.ticker_prices = self._get_ticker_prices()
         self.value = self.get_value()
 
@@ -28,8 +27,15 @@ class Portfolio(object):
 
         pass
 
+    """" Print important class information """
     def describe(self):
-        print 'insvestment: ', self.investment
+        print 'Ticker Symbols: ', [ticker.symbol for ticker in self.tickers]
+        print 'Corresponding Weights: ', self.weights
+        print 'Sharpe Ratio: ', self.sharpe_ratio
+        print 'Starting Investment: ${:,.2f}'.format(self.investment)
+        print 'Ending portfolio value: ${:,.2f}'.format(self.value[-1])
+        print 'Cummulative Return {0:.3f}%'.format(self.cummulative_return)
+
 
     """ returns a dataframe with adj close price of all tickers in the portfolio"""
     def _get_ticker_prices(self):
