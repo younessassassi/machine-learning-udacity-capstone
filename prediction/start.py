@@ -110,10 +110,22 @@ def hold_optimized_portfolio(investment, buy_date, sell_date):
 def use_predictions_optimized_portfolio(investment, buy_date, sell_date):
     symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
     weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
-    return simulate_trade(symbols, weights, buy_date, sell_date, investment)
+    # predict_for_symbols(symbols, buy_date, sell_date)
+    for symbol in symbols:
+        predict_for_symbol([symbol], buy_date, sell_date)
+    # return simulate_trade(symbols, weights, buy_date, sell_date, investment)
 
-def predict_for_symbols(symbols):
+def predict_for_symbol(symbols, start_date, end_date):
+    symbol = symbols[0]
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
+    ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
+    generate_model(ticker)
+    prediction_df = predict(ticker)
+    print 'Predictions: '
+    print prediction_df
+
+def predict_for_symbols(symbols, start_date, end_date):
+    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date, shift=-5)
     for symbol in symbols:
         ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
         analyze_features(ticker)
@@ -123,11 +135,18 @@ def predict_for_symbols(symbols):
         plot_data(prediction_df.tail(10), title="Prediction vs actual")
 
 def run(): 
-    buy_date = '2018-01-03'
-    sell_date = '2018-02-07'
+    train_start_date ='2017-01-03'
+    train_end_date = '2017-11-03'
+    buy_date = '2017-11-06'
+    sell_date = '2017-11-10'
     investment = 100000 # $100,000.00 as starting investment
     hold_spy(investment, buy_date, sell_date)
     hold_optimized_portfolio(investment, buy_date, sell_date)
+
+    # train and test your model
+    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    predict_for_symbols(symbols, train_start_date, train_end_date)
+
     use_predictions_optimized_portfolio(investment, buy_date, sell_date)
     
    
