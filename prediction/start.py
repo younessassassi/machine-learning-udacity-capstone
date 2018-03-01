@@ -117,15 +117,16 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date):
     # return simulate_trade(symbols, weights, buy_date, sell_date, investment)
 
 def predict_for_symbol(symbols, start_date, end_date):
+    window = 5
     symbol = symbols[0]
     start_date = pd.to_datetime(start_date)
-    start_date = start_date - timedelta(days=5)
+    start_date = start_date - timedelta(days=window)
 
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
     prediction_df = predict(ticker)
-    # print 'Predictions: '
-    # print prediction_df
+    print 'Predictions: '
+    print prediction_df[window-2:]
 
 def predict_for_symbols(symbols, start_date, end_date):
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
