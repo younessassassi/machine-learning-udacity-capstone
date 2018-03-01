@@ -16,12 +16,12 @@ from common.start import get_prices, get_all_tickers, visualize_correlation, plo
 from common.start import store_pickle, get_pickle, store_ticker_analysis, CLASSIFIER_PICKLE_DIR
 
 def get_classifiers():
-    classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'Support Vector Regression Linear',
-        'Support Vector Regression Poly', 'Support Vector Regression RBF', 'Linear Regression']
+    classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
+    classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'SVM Regression Linear',
+        'SVM Regression Poly', 'SVM Regression RBF', 'Linear Regression']
     classifiers = [neighbors.KNeighborsRegressor(), RandomForestRegressor(), svm.SVR(kernel='linear', C=1e3), 
         svm.SVR(kernel= 'poly', C=1e3, degree=2), svm.SVR(kernel='rbf', C=1e3, gamma=0.1), LinearRegression()]
-    return dict(zip(classifier_names, classifiers))
-
+    return dict(zip(classifier_names, classifiers)), classifiers_needing_scaling
 
 def run_prediction(clf, X_train, X_test, y_train, y_test):
     clf.fit(X_train, y_train)
@@ -34,15 +34,23 @@ def cross_validate(ticker, clf_name, clf):
     X = ticker.get_features()
     y = ticker.get_label()
 
-    # X =  StandardScaler().fit_transform(X)
     tscv = TimeSeriesSplit(n_splits = 3)
 
     confidenceList = []
     rmseList = []
+    classifiers, need_scaling = get_classifiers()
     for train_index, test_index in tscv.split(X):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
-        confidence, predictions = run_prediction(clf, X_train, X_test, y_train, y_test)
+
+        if clf_name in need_scaling:
+            print clf_name + ' needs scaling'
+            X_train_scaled = StandardScaler().fit_transform(X_train)
+            X_test_scaled = StandardScaler().fit_transform(X_test)
+            confidence, predictions = run_prediction(clf, X_train_scaled, X_test_scaled, y_train, y_test)
+        else:
+            print clf_name + ' does not need scaling'
+            confidence, predictions = run_prediction(clf, X_train, X_test, y_train, y_test)
         rmseList.append(math.sqrt(((y_test - predictions) ** 2).sum()/len(y_test)))
         confidenceList.append(confidence)
 
@@ -61,8 +69,13 @@ def get_model_pickle_path(symbol, clf_name):
 def generate_model(ticker, clf_name, clf):
     X_train = ticker.get_features()
     y_train = ticker.get_label()
-    # X_train =  StandardScaler().fit_transform(X_train)
-    clf.fit(X_train, y_train)
+    classifiers, need_scaling = get_classifiers()
+    if clf_name in need_scaling:
+        X_train_scaled = StandardScaler().fit_transform(X_train)
+        clf.fit(X_train_scaled, y_train)
+    else:
+        clf.fit(X_train, y_train)
+   
     # pickle the classifier for use at a later time
     store_pickle(clf, get_model_pickle_path(ticker.symbol, clf_name), CLASSIFIER_PICKLE_DIR)
 
@@ -129,16 +142,19 @@ def predict_for_symbol(symbols, start_date, end_date):
 
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-    for clf_name, clf in get_classifiers().iteritems():
+    classifiers, need_scaling = get_classifiers()
+    for clf_name, clf in classifiers.iteritems():
         prediction_df = predict(ticker, clf_name)
         print symbol + 'Predictions using : ' + clf_name
         print prediction_df[window-2:]
 
 def predict_for_symbols(symbols, start_date, end_date):
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
+    classifiers, need_scaling = get_classifiers()
     for symbol in symbols:
         ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-        for clf_name, clf in get_classifiers().iteritems():
+        
+        for clf_name, clf in classifiers.iteritems():
             # analyze_features(ticker)
             cross_validate(ticker, clf_name, clf)
             generate_model(ticker, clf_name, clf)
