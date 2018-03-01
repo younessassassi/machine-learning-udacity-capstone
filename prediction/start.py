@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from datetime import datetime, timedelta
 import math
 
 from sklearn import svm, neighbors
@@ -117,22 +118,24 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date):
 
 def predict_for_symbol(symbols, start_date, end_date):
     symbol = symbols[0]
+    start_date = pd.to_datetime(start_date)
+    start_date = start_date - timedelta(days=5)
+
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-    generate_model(ticker)
     prediction_df = predict(ticker)
-    print 'Predictions: '
-    print prediction_df
+    # print 'Predictions: '
+    # print prediction_df
 
 def predict_for_symbols(symbols, start_date, end_date):
-    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date, shift=-5)
+    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     for symbol in symbols:
         ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-        analyze_features(ticker)
+        # analyze_features(ticker)
         cross_validate(ticker)
         generate_model(ticker)
         prediction_df = predict(ticker)
-        plot_data(prediction_df.tail(10), title="Prediction vs actual")
+        # plot_data(prediction_df.tail(10), title="Prediction vs actual")
 
 def run(): 
     train_start_date ='2017-01-03'
