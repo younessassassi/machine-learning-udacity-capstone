@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import math
 
 from sklearn import svm, neighbors
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import TimeSeriesSplit
@@ -14,27 +15,26 @@ from statistics.Sim import Sim
 from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data, get_tickers_for_symbols
 from common.start import store_pickle, get_pickle, store_ticker_analysis, CLASSIFIER_PICKLE_DIR
 
-def run_prediction(X_train, X_test, y_train, y_test):
-    # svr_lin = svm.SVR(kernel='linear', C=1e3)
-    # svr_poly = svm.SVR(kernel= 'poly', C=1e3, degree=2)
-    # svr_rbf = svm.SVR(kernel='rbf', C=1e3, gamma=0.1)
-    # clf = svr_lin
-    # clf = svr_poly
-    # clf = svr_rbf
-    clf =  LinearRegression()
-    # clf = neighbors.KNeighborsRegressor()
-    # clf = RandomForestRegressor()
-    # clf = neighbors.KNeighborsRegressor()
+def get_classifiers():
+    classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'Support Vector Regression Linear',
+        'Support Vector Regression Poly', 'Support Vector Regression RBF', 'Linear Regression']
+    classifiers = [neighbors.KNeighborsRegressor(), RandomForestRegressor(), svm.SVR(kernel='linear', C=1e3), 
+        svm.SVR(kernel= 'poly', C=1e3, degree=2), svm.SVR(kernel='rbf', C=1e3, gamma=0.1), LinearRegression()]
+    return dict(zip(classifier_names, classifiers))
+
+
+def run_prediction(clf, X_train, X_test, y_train, y_test):
     clf.fit(X_train, y_train)
     confidence = clf.score(X_test, y_test)
     predictions = clf.predict(X_test)
 
     return confidence, predictions
 
-def cross_validate(ticker):
+def cross_validate(ticker, clf_name, clf):
     X = ticker.get_features()
     y = ticker.get_label()
 
+    # X =  StandardScaler().fit_transform(X)
     tscv = TimeSeriesSplit(n_splits = 3)
 
     confidenceList = []
@@ -42,37 +42,41 @@ def cross_validate(ticker):
     for train_index, test_index in tscv.split(X):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
-        confidence, predictions = run_prediction(X_train, X_test, y_train, y_test)
+        confidence, predictions = run_prediction(clf, X_train, X_test, y_train, y_test)
         rmseList.append(math.sqrt(((y_test - predictions) ** 2).sum()/len(y_test)))
         confidenceList.append(confidence)
 
     confidence_mean = np.array(confidenceList).mean()
     rmse_mean = np.array(rmseList).mean()
-    print 'Confidence: ', confidence_mean
-    print "Root Mean Squared Error of Predictions: ", rmse_mean
+    print '----------------------------------------------------------------'
+    print 'Results for classifier: ' + clf_name
+    print '{} Confidence: {:,.3f}'.format(ticker.symbol, confidence_mean)
+    print "{} Root Mean Squared Error of Predictions: {:,.3f}".format(ticker.symbol, rmse_mean)
+    print '----------------------------------------------------------------'
 
-def generate_model(ticker):
+def get_model_pickle_path(symbol, clf_name):
+    _clf_name = clf_name.replace(' ', '_').lower()
+    return symbol+'_'+_clf_name+'_model.sav'
+
+def generate_model(ticker, clf_name, clf):
     X_train = ticker.get_features()
     y_train = ticker.get_label()
-    # clf = neighbors.KNeighborsRegressor()
-    clf = LinearRegression()
-    # clf = RandomForestRegressor()
+    # X_train =  StandardScaler().fit_transform(X_train)
     clf.fit(X_train, y_train)
     # pickle the classifier for use at a later time
-    classifier_path = CLASSIFIER_PICKLE_DIR
-    store_pickle(clf, ticker.symbol+'_model.sav', classifier_path)
+    store_pickle(clf, get_model_pickle_path(ticker.symbol, clf_name), CLASSIFIER_PICKLE_DIR)
 
-def run_classifier_for_symbol(ticker):
+def run_classifier_for_symbol(ticker, clf_name):
     X_predict = ticker.get_features()
-    classifier_path = CLASSIFIER_PICKLE_DIR
-    model = get_pickle(ticker.symbol+'_model.sav', classifier_path)
+    model = get_pickle(get_model_pickle_path(ticker.symbol, clf_name), CLASSIFIER_PICKLE_DIR)
 
     return model.predict(X_predict)
 
-def predict(ticker):
+def predict(ticker, clf_name):
     predict_df = ticker.get_adj_close_df().copy()
-    predict_df['Predictions'] = run_classifier_for_symbol(ticker)
-    store_ticker_analysis(predict_df, 'prediction_'+ticker.symbol)
+    predict_df['Predictions'] = run_classifier_for_symbol(ticker, clf_name)
+    _clf_name = clf_name.replace(' ', '_').lower()
+    store_ticker_analysis(predict_df, ticker.symbol+'_'+_clf_name+'_prediction')
     return predict_df
 
 def analyze_features(ticker):
@@ -125,30 +129,32 @@ def predict_for_symbol(symbols, start_date, end_date):
 
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-    prediction_df = predict(ticker)
-    print 'Predictions: '
-    print prediction_df[window-2:]
+    for clf_name, clf in get_classifiers().iteritems():
+        prediction_df = predict(ticker, clf_name)
+        print symbol + 'Predictions using : ' + clf_name
+        print prediction_df[window-2:]
 
 def predict_for_symbols(symbols, start_date, end_date):
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     for symbol in symbols:
         ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-        # analyze_features(ticker)
-        cross_validate(ticker)
-        generate_model(ticker)
-        prediction_df = predict(ticker)
-        # plot_data(prediction_df.tail(10), title="Prediction vs actual")
+        for clf_name, clf in get_classifiers().iteritems():
+            # analyze_features(ticker)
+            cross_validate(ticker, clf_name, clf)
+            generate_model(ticker, clf_name, clf)
+            prediction_df = predict(ticker, clf_name)
+            # plot_data(prediction_df.tail(10), title="Prediction vs actual")
 
 def run(): 
     train_start_date ='2017-01-03'
     train_end_date = '2017-11-03'
     buy_date = '2017-11-06'
     sell_date = '2017-11-10'
-    investment = 100000 # $100,000.00 as starting investment
+    investment = 10000 # $10,000.00 as starting investment
     hold_spy(investment, buy_date, sell_date)
     hold_optimized_portfolio(investment, buy_date, sell_date)
 
-    # train and test your model
+    # train and test the model
     symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
     predict_for_symbols(symbols, train_start_date, train_end_date)
 
