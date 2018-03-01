@@ -107,6 +107,7 @@ def run():
     print simulation.get_trades_df()
     simulation.prepare_trades()
     print simulation.get_trades_df()
+    print simulation.cash_out(start_date, end_date)
     
     # for symbol in symbols:
     #     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])

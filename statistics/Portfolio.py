@@ -28,15 +28,8 @@ class Portfolio(object):
 
         #sharpe ratio - average return earned in excess of the risk-free rate per unit of volatility or total risk
         self.sharpe_ratio = ((self.daily_returns - self.daily_rf).mean()/self.daily_returns.std()) * np.sqrt(self.samples_per_year)
-        self.weight_dict = self.get_weight_dict()
+        self.weight_dict = dict(zip(self.symbols, self.weights))
         pass
-
-    def get_weight_dict(self):
-        weight_dict = {}
-        for symbol in self.symbols:
-            for weight in self.weights:
-                weight_dict[symbol] = weight
-        return weight_dict
 
 
     """" Print important class information """
