@@ -68,7 +68,6 @@ def run_classifier_for_symbol(ticker):
 
     return model.predict(X_predict)
 
-
 def predict(ticker):
     predict_df = ticker.get_adj_close_df().copy()
     predict_df['Predictions'] = run_classifier_for_symbol(ticker)
@@ -80,44 +79,57 @@ def analyze_features(ticker):
     store_ticker_analysis(ticker_df, ticker.symbol)
     visualize_correlation(ticker_df)
 
-
-def run():
-    start_date = '2018-02-05'
-    end_date = '2018-02-07'
-    # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    symbols = ['T', 'IBM']
-    weights = [0.5, 0.5]
-    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
-    investment = 1000 # $100,000.00 as starting investment
-    # weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
+def get_portfolio(symbols, weights, start_date, end_date, investment, no_spy):
+    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date, no_spy)
     tickers = get_tickers_for_symbols(symbols, start_date, end_date)
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
-    simulation = Sim(portfolio, start_date, end_date)
+    return portfolio
+
+def simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=False):
+    portfolio = get_portfolio(symbols, weights, buy_date, sell_date, investment, no_spy)
+    simulation = Sim(portfolio, buy_date, sell_date)
     print '---------------------------'
     print 'Simulation for'
     print '---------------------------'
     portfolio.describe()
     print '---------------------------'
-    print 'Original prices'
-    print '---------------------------'
-    print simulation.get_original_prices()
-    print '---------------------------'
-    print 'Trades'
-    print '---------------------------'
-    print simulation.get_trades_df()
-    simulation.prepare_trades()
-    print simulation.get_trades_df()
-    print simulation.cash_out(start_date, end_date)
+   
+    return simulation.cash_out(buy_date, sell_date)
+
+def hold_spy(investment, buy_date, sell_date):
+    symbols = ['SPY']
+    weights = [1.0]
+    return simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=False)
+
+def hold_optimized_portfolio(investment, buy_date, sell_date):
+    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
+    return simulate_trade(symbols, weights, buy_date, sell_date, investment)
+
+
+def use_predictions_optimized_portfolio(investment, buy_date, sell_date):
+    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
+    return simulate_trade(symbols, weights, buy_date, sell_date, investment)
+
+def predict_for_symbols(symbols):
+    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
+    for symbol in symbols:
+        ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
+        analyze_features(ticker)
+        cross_validate(ticker)
+        generate_model(ticker)
+        prediction_df = predict(ticker)
+        plot_data(prediction_df.tail(10), title="Prediction vs actual")
+
+def run(): 
+    buy_date = '2018-01-03'
+    sell_date = '2018-02-07'
+    investment = 100000 # $100,000.00 as starting investment
+    hold_spy(investment, buy_date, sell_date)
+    hold_optimized_portfolio(investment, buy_date, sell_date)
+    use_predictions_optimized_portfolio(investment, buy_date, sell_date)
     
-    # for symbol in symbols:
-    #     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-    #     analyze_features(ticker)
-    #     cross_validate(ticker)
-    #     generate_model(ticker)
-    #     prediction_df = predict(ticker)
-    #     plot_data(prediction_df.tail(10), title="Prediction vs actual")
-
-
-
+   
 if __name__ == "__main__":
     run()

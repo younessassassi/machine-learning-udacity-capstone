@@ -9,13 +9,13 @@ class Sim(object):
         self.portfolio = portfolio
         self.start = start
         self.end = end
-        self.cash_total = portfolio.investment
         #set up the data frame for the stocks over the period
         self.daily_prices = portfolio._get_ticker_prices()
         
         self.trades_df = self.daily_prices.copy()
         self.trades_df[0:] = 0.0
         self.trades_df['Residual'] = 0.0
+        self.prepare_trades()
         pass 
 
     def cash_out(self, buy_date, sell_date):
@@ -25,6 +25,7 @@ class Sim(object):
         sell_data_prices = self.daily_prices.loc[sell_date]
         calculated_assets = np.multiply(assets, sell_data_prices)
         cash_total = np.sum(calculated_assets) + residual
+        print 'cash total: ', cash_total
         return cash_total
 
     def get_trade_count(self, price, weight, investment):
