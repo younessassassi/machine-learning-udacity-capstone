@@ -114,6 +114,7 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date):
     # predict_for_symbols(symbols, buy_date, sell_date)
     for symbol in symbols:
         predict_for_symbol([symbol], buy_date, sell_date)
+        
     # return simulate_trade(symbols, weights, buy_date, sell_date, investment)
 
 def predict_for_symbol(symbols, start_date, end_date):
