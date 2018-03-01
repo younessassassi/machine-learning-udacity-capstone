@@ -31,16 +31,16 @@ def get_ticker_path(ticker):
     return STOCK_DF_DIR + '/{}.csv'.format(ticker)
 
 """Returns two dataframes that contain adj close for each of the symbols provided plus the S&P index"""
-def get_prices(symbols, start_date, end_date, has_spy=False):
-    # if not has_spy:
-    #     symbols_with_SPY = symbols[:]
-    #     symbols_with_SPY.append('SPY')
-    #     prices_with_SPY = get_ticker_data(symbols_with_SPY, start_date, end_date)
-    #     prices_without_SPY = prices_with_SPY.drop('SPY', axis=1)
-    # else:
-    prices = get_ticker_data(symbols, start_date, end_date)
-    prices_with_SPY = prices.copy()
-    prices_without_SPY = prices.copy()
+def get_prices(symbols, start_date, end_date, no_spy=True):
+    if no_spy:
+        symbols_with_SPY = symbols[:]
+        symbols_with_SPY.append('SPY')
+        prices_with_SPY = get_ticker_data(symbols_with_SPY, start_date, end_date)
+        prices_without_SPY = prices_with_SPY.drop('SPY', axis=1)
+    else:
+        prices = get_ticker_data(symbols, start_date, end_date)
+        prices_with_SPY = prices.copy()
+        prices_without_SPY = prices.copy()
     return prices_without_SPY, prices_with_SPY
 
 """Reads adjusted close stock data for given tickers from CSV files."""
@@ -64,8 +64,8 @@ def get_ticker_data(tickers=None, start_date='2006-01-03', end_date='2018-02-23'
     return df
 
 """Get a list of Ticker objects using the symbols and date range"""
-def get_tickers_for_symbols(symbols, start_date, end_date):
-    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
+def get_tickers_for_symbols(symbols, start_date, end_date, no_spy=True):
+    prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date, no_spy)
     tickers = None
     for symbol in symbols:
         ticker = Ticker(symbol=symbol, data_df=prices_df[[symbol]])

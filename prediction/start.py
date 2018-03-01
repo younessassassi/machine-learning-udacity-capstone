@@ -79,13 +79,13 @@ def analyze_features(ticker):
     store_ticker_analysis(ticker_df, ticker.symbol)
     visualize_correlation(ticker_df)
 
-def get_portfolio(symbols, weights, start_date, end_date, investment, no_spy):
+def get_portfolio(symbols, weights, start_date, end_date, investment, no_spy=True):
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date, no_spy)
-    tickers = get_tickers_for_symbols(symbols, start_date, end_date)
+    tickers = get_tickers_for_symbols(symbols, start_date, end_date, no_spy)
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
     return portfolio
 
-def simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=False):
+def simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=True):
     portfolio = get_portfolio(symbols, weights, buy_date, sell_date, investment, no_spy)
     simulation = Sim(portfolio, buy_date, sell_date)
     print '---------------------------'
