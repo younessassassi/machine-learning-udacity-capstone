@@ -15,7 +15,7 @@ from statistics.Sim import Sim
 from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data, get_tickers_for_symbols
 from common.start import store_pickle, get_pickle, store_ticker_analysis, CLASSIFIER_PICKLE_DIR
 
-def get_classifiers():
+def get_classifiers(): 
     classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
     classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'SVM Regression Linear',
         'SVM Regression Poly', 'SVM Regression RBF', 'Linear Regression']
@@ -28,7 +28,7 @@ def run_prediction(clf, X_train, X_test, y_train, y_test):
     confidence = clf.score(X_test, y_test)
     predictions = clf.predict(X_test)
 
-    return confidence, predictions
+    return confidence, predictions, clf
 
 def cross_validate(ticker, clf_name, clf):
     X = ticker.get_features()
@@ -36,30 +36,36 @@ def cross_validate(ticker, clf_name, clf):
 
     tscv = TimeSeriesSplit(n_splits = 3)
 
-    confidenceList = []
-    rmseList = []
+    confidence_list = []
+    rmse_list_out = []
+    rmse_list_in = []
     classifiers, need_scaling = get_classifiers()
+    actual_values = []
+    predicted_values = []
     for train_index, test_index in tscv.split(X):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
+        actual_values.append(X_test)
 
         if clf_name in need_scaling:
-            print clf_name + ' needs scaling'
             X_train_scaled = StandardScaler().fit_transform(X_train)
             X_test_scaled = StandardScaler().fit_transform(X_test)
-            confidence, predictions = run_prediction(clf, X_train_scaled, X_test_scaled, y_train, y_test)
+            confidence, predictions, clf = run_prediction(clf, X_train_scaled, X_test_scaled, y_train, y_test)
         else:
-            print clf_name + ' does not need scaling'
-            confidence, predictions = run_prediction(clf, X_train, X_test, y_train, y_test)
-        rmseList.append(math.sqrt(((y_test - predictions) ** 2).sum()/len(y_test)))
-        confidenceList.append(confidence)
-
-    confidence_mean = np.array(confidenceList).mean()
-    rmse_mean = np.array(rmseList).mean()
-    print '----------------------------------------------------------------'
-    print 'Results for classifier: ' + clf_name
+            confidence, predictions, clf = run_prediction(clf, X_train, X_test, y_train, y_test)
+        confidence_list.append(confidence)
+        rmse_list_out.append(math.sqrt(((y_test - clf.predict(X_test)) ** 2).sum()/len(y_test)))
+        rmse_list_in.append(math.sqrt(((y_train - clf.predict(X_train)) ** 2).sum()/len(X_test)))
+        predicted_values.append(predictions)
+        
+    confidence_mean = np.array(confidence_list).mean()
+    rmse_mean_in = np.array(rmse_list_in).mean()
+    rmse_mean_out = np.array(rmse_list_out).mean()
+    print '---------------------------------------------------------------'
+    print 'Results for classifier: ' + clf_name    
     print '{} Confidence: {:,.3f}'.format(ticker.symbol, confidence_mean)
-    print "{} Root Mean Squared Error of Predictions: {:,.3f}".format(ticker.symbol, rmse_mean)
+    print "{} In sample Root Mean Squared Error: {:,.3f}".format(ticker.symbol, rmse_mean_in)
+    print "{} Out of sample Root Mean Squared Error: {:,.3f}".format(ticker.symbol, rmse_mean_out)
     print '----------------------------------------------------------------'
 
 def get_model_pickle_path(symbol, clf_name):
@@ -167,14 +173,14 @@ def run():
     train_start_date ='2017-01-03'
     train_end_date = '2017-11-03'
     buy_date = '2017-11-06'
-    sell_date = '2017-11-10'
+    sell_date = '2017-11-20'
     investment = 10000 # $10,000.00 as starting investment
-    # hold_spy(investment, buy_date, sell_date)
-    # hold_optimized_portfolio(investment, buy_date, sell_date)
+    hold_spy(investment, buy_date, sell_date)
+    hold_optimized_portfolio(investment, buy_date, sell_date)
 
     # train and test the model
-    # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    # predict_for_symbols(symbols, train_start_date, train_end_date)
+    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    predict_for_symbols(symbols, train_start_date, train_end_date)
 
     use_predictions_optimized_portfolio(investment, buy_date, sell_date)
     
