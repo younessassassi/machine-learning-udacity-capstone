@@ -86,9 +86,11 @@ def run_classifier_for_symbol(ticker, clf_name):
     return model.predict(X_predict)
 
 def predict(ticker, clf_name):
-    predict_df = ticker.get_adj_close_df().copy()
+    predict_df = ticker.df[['Next Day Adj Close']].copy() 
     predict_df['Predictions'] = run_classifier_for_symbol(ticker, clf_name)
     _clf_name = clf_name.replace(' ', '_').lower()
+    # remove last row as we dont have the next day to compare against
+    predict_df = predict_df[:-1]
     store_ticker_analysis(predict_df, ticker.symbol+'_'+_clf_name+'_prediction')
     return predict_df
 
@@ -145,7 +147,7 @@ def predict_for_symbol(symbols, start_date, end_date):
     classifiers, need_scaling = get_classifiers()
     for clf_name, clf in classifiers.iteritems():
         prediction_df = predict(ticker, clf_name)
-        print symbol + 'Predictions using : ' + clf_name
+        print symbol + ' Predictions using : ' + clf_name
         print prediction_df[window-2:]
 
 def predict_for_symbols(symbols, start_date, end_date):
@@ -167,12 +169,12 @@ def run():
     buy_date = '2017-11-06'
     sell_date = '2017-11-10'
     investment = 10000 # $10,000.00 as starting investment
-    hold_spy(investment, buy_date, sell_date)
-    hold_optimized_portfolio(investment, buy_date, sell_date)
+    # hold_spy(investment, buy_date, sell_date)
+    # hold_optimized_portfolio(investment, buy_date, sell_date)
 
     # train and test the model
-    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    predict_for_symbols(symbols, train_start_date, train_end_date)
+    # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    # predict_for_symbols(symbols, train_start_date, train_end_date)
 
     use_predictions_optimized_portfolio(investment, buy_date, sell_date)
     
