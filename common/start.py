@@ -99,7 +99,7 @@ def plot_data(df, title="Stock performance", xlabel="Date", ylabel="Price"):
     plt.show()
 
 """ Visualize correlation between stocks on a df."""
-def visualize_correlation(df):
+def visualize_correlation(df, title=""):
     df_corr = df.corr()
     data = df_corr.values
     fig = plt.figure()
@@ -118,6 +118,7 @@ def visualize_correlation(df):
     ax.set_xticklabels(column_labels)
     ax.set_yticklabels(row_labels)
     plt.xticks(rotation=90)
+    plt.title = title
     heatmap.set_clim(-1, 1)
     plt.tight_layout
     

@@ -21,7 +21,6 @@ class Ticker(object):
         return df[['Adj Close']]
 
 
-
 class TickerAnalysed(Ticker):
     def __init__(self, symbol=None, data_df={}, window=5):
         Ticker.__init__(self, symbol, data_df)
@@ -53,7 +52,7 @@ class TickerAnalysed(Ticker):
 
     def get_features(self):
         features = self._get_clean_df()
-        features.drop(['Adj Close', 'Next Day Adj Close'], axis=1 , inplace=True)
+        features.drop(['Adj Close', 'Next Day Adj Close', 'Moving Average', 'Momentum'], axis=1 , inplace=True)
         return features.values
     
     def get_label(self):
