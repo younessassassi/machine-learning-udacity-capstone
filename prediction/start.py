@@ -19,7 +19,7 @@ def get_classifiers():
     classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
     classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'SVM Regression Linear',
         'SVM Regression Poly', 'SVM Regression RBF', 'Linear Regression']
-    classifiers = [neighbors.KNeighborsRegressor(), RandomForestRegressor(), svm.SVR(kernel='linear', C=1e3), 
+    classifiers = [neighbors.KNeighborsRegressor(), RandomForestRegressor(max_depth=2, random_state=0), svm.SVR(kernel='linear', C=1e3), 
         svm.SVR(kernel= 'poly', C=1e3, degree=2), svm.SVR(kernel='rbf', C=1e3, gamma=0.1), LinearRegression()]
     return dict(zip(classifier_names, classifiers)), classifiers_needing_scaling
 
