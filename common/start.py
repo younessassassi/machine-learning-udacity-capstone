@@ -143,6 +143,13 @@ def store_pickle(data, filename, path):
     with open(path+filename, "wb") as f:
         pickle.dump(data, f)
 
+"""Store the classifier analysis data in a csv file"""
+def store_classifer_analysis(df):
+    if not os.path.exists(CLASSIFIER_PICKLE_DIR):
+        os.makedirs(CLASSIFIER_PICKLE_DIR)
+    
+    df.to_csv(TICKER_STATS_DIR+'classifiers_results.csv')
+
 """Store the stock analysis data in a csv file"""
 def store_ticker_analysis(df, symbol):
     if not os.path.exists(TICKER_STATS_DIR):

@@ -13,7 +13,7 @@ from statistics.Portfolio import Portfolio
 from prediction.Ticker import TickerAnalysed, Ticker
 from statistics.Sim import Sim
 from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data, get_tickers_for_symbols
-from common.start import store_pickle, get_pickle, store_ticker_analysis, CLASSIFIER_PICKLE_DIR
+from common.start import store_pickle, get_pickle, store_ticker_analysis, store_classifer_analysis, CLASSIFIER_PICKLE_DIR
 
 def get_classifiers(): 
     classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
@@ -67,6 +67,8 @@ def cross_validate(ticker, clf_name, clf):
     print "{} In sample Root Mean Squared Error: {:,.3f}".format(ticker.symbol, rmse_mean_in)
     print "{} Out of sample Root Mean Squared Error: {:,.3f}".format(ticker.symbol, rmse_mean_out)
     print '----------------------------------------------------------------'
+    return [ticker.symbol, clf_name, confidence_mean, rmse_mean_in, rmse_mean_out]
+
 
 def get_model_pickle_path(symbol, clf_name):
     _clf_name = clf_name.replace(' ', '_').lower()
@@ -136,7 +138,6 @@ def hold_optimized_portfolio(investment, buy_date, sell_date):
 def use_predictions_optimized_portfolio(investment, buy_date, sell_date):
     symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
     weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
-    # predict_for_symbols(symbols, buy_date, sell_date)
     for symbol in symbols:
         predict_for_symbol([symbol], buy_date, sell_date)
         
@@ -150,24 +151,34 @@ def predict_for_symbol(symbols, start_date, end_date):
 
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-    classifiers, need_scaling = get_classifiers()
-    for clf_name, clf in classifiers.iteritems():
-        prediction_df = predict(ticker, clf_name)
-        print symbol + ' Predictions using : ' + clf_name
-        print prediction_df[window-2:]
-
+    # classifier = LinearRegression()
+    # classifiers, need_scaling = get_classifiers()
+    clf_name = 'Linear Regression'
+    prediction_df = predict(ticker, clf_name)
+    # for clf_name, clf in classifiers.iteritems():
+    prediction_df = predict(ticker, clf_name)
+    print symbol + ' Predictions using : ' + clf_name
+    print prediction_df[window-2:]
+    plot_data(prediction_df, title=symbol + " Prediction vs actual")
+        
 def predict_for_symbols(symbols, start_date, end_date):
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     classifiers, need_scaling = get_classifiers()
+    classifier_results = []
     for symbol in symbols:
         ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
         
         for clf_name, clf in classifiers.iteritems():
             # analyze_features(ticker)
-            cross_validate(ticker, clf_name, clf)
-            generate_model(ticker, clf_name, clf)
-            prediction_df = predict(ticker, clf_name)
-            # plot_data(prediction_df.tail(10), title="Prediction vs actual")
+            classifier_results.append(cross_validate(ticker, clf_name, clf))
+            
+    
+    return pd.DataFrame(classifier_results, columns=['Symbol', 'Classifier', 'Confidence',
+        'RMSE In Sample', 'RMSE Out of Sample'])
+   
+        # generate_model(ticker, clf_name, clf)
+        # prediction_df = predict(ticker, clf_name)
+        # plot_data(prediction_df.tail(10), title="Prediction vs actual")
 
 def run(): 
     train_start_date ='2017-01-03'
@@ -180,7 +191,8 @@ def run():
 
     # train and test the model
     symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    predict_for_symbols(symbols, train_start_date, train_end_date)
+    # df = predict_for_symbols(symbols, train_start_date, train_end_date)
+    # store_classifer_analysis(df)
 
     use_predictions_optimized_portfolio(investment, buy_date, sell_date)
     
