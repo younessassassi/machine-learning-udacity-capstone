@@ -151,6 +151,12 @@ def store_classifer_analysis(df):
     
     df.to_csv(TICKER_STATS_DIR+'classifiers_results.csv')
 
+def get_classifier_analysis():
+    if not os.path.exists(CLASSIFIER_PICKLE_DIR):
+        print 'Classifier stat file does not exit. Please run the predictions before you try opeining this files'
+    else:
+        return pd.read_csv(TICKER_STATS_DIR+'classifiers_results.csv')
+
 """Store the stock analysis data in a csv file"""
 def store_ticker_analysis(df, symbol):
     if not os.path.exists(TICKER_STATS_DIR):

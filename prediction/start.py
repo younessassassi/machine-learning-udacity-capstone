@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 import math
+import matplotlib.pyplot as plt
 
+from sklearn import preprocessing
 from sklearn import svm, neighbors
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression, LinearRegression
@@ -13,7 +15,8 @@ from statistics.Portfolio import Portfolio
 from prediction.Ticker import TickerAnalysed, Ticker
 from statistics.Sim import Sim
 from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data, get_tickers_for_symbols
-from common.start import store_pickle, get_pickle, store_ticker_analysis, store_classifer_analysis, CLASSIFIER_PICKLE_DIR
+from common.start import store_pickle, get_pickle, store_ticker_analysis, store_classifer_analysis
+from common.start import get_classifier_analysis, CLASSIFIER_PICKLE_DIR
 
 def get_classifiers(): 
     classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
@@ -180,6 +183,26 @@ def predict_for_symbols(symbols, start_date, end_date):
         # prediction_df = predict(ticker, clf_name)
         # plot_data(prediction_df.tail(10), title="Prediction vs actual")
 
+def visualize_classifier_results():
+    df = get_classifier_analysis()
+    df.drop(df.columns[0], axis=1, inplace=True)
+    symbols = df['Symbol']
+    df = df[df['Symbol'] == symbols[0]]
+    df = df[df['Classifier'] != 'SVM Regression Poly']
+    df.drop('Symbol', axis=1, inplace=True)
+    df.set_index('Classifier', inplace=True)
+    df.sort_values(by=['RMSE Out of Sample'], inplace=True)
+    print df
+    df_rmse = df[['RMSE Out of Sample']]
+    print df_rmse
+    
+    
+    ax = df_rmse.plot(kind='bar', title ="Classifier Comparison", figsize=(15, 10), legend=True, fontsize=10)
+    ax.set_xlabel("Classifier", fontsize=12)
+    ax.set_ylabel("RMSE", fontsize=12)
+    plt.xticks(rotation='horizontal')
+    plt.show()
+
 def run(): 
     train_start_date ='2017-01-03'
     train_end_date = '2017-11-03'
@@ -194,8 +217,8 @@ def run():
     df = predict_for_symbols(symbols, train_start_date, train_end_date)
     store_classifer_analysis(df)
 
-    use_predictions_optimized_portfolio(investment, buy_date, sell_date)
-    
+    # use_predictions_optimized_portfolio(investment, buy_date, sell_date)
+    visualize_classifier_results()    
    
 if __name__ == "__main__":
     run()
