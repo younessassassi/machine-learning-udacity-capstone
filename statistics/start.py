@@ -90,6 +90,7 @@ def get_top_optimal_symbols(prices):
     return get_top_tickers_alloc(symbols_used, allocations_used)
     
 
+
 """Get the tickers, their correspoding allocations and dataframe that make up the optimal portfolio"""
 def optimize_portfolio(portfolio):
     symbol_alloc, is_reduced = get_top_optimal_symbols(portfolio.ticker_prices)
@@ -119,11 +120,20 @@ def compare_to_SP(portfolio):
     normalized_df = combined_df/combined_df.ix[0]
     plot_data(normalized_df)
 
+
+def displayTicker(symbol, start_date, end_date):
+    tickers = get_tickers_for_symbols([symbol], start_date, end_date)
+    ticker = tickers[0]
+    plot_data(ticker.df, symbol+' Adj Close Price')
+
+
 """ You can change the stock, allocation, investment and date to get new values. """
 def run():
     start_date = '2017-01-01'
     end_date = '2017-12-31'
     investment = 100000 # $100,000.00 as starting investment
+    # uncomment this line to display the adjusted close price of a single stock
+    # displayTicker('T', start_date, end_date)  
     # symbols = ['T', 'IBM']
     # symbols = get_all_tickers()
     # weights = get_allocations_used(symbols, [])
@@ -140,8 +150,8 @@ def run():
     # # allocations = []
     # optimize = False
     
-    # analyse_portfolio(symbols, weights, start_date, end_date, investment, optimize)
-    
+    # analyse_portfolio(symbols, weights, start_date, end_date, investment, optimize)    
+
     tickers = get_tickers_for_symbols(symbols, start_date, end_date)
 
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
