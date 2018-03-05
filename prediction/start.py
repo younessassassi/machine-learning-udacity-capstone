@@ -14,9 +14,11 @@ from sklearn.model_selection import cross_val_score
 from statistics.Portfolio import Portfolio
 from prediction.Ticker import TickerAnalysed, Ticker
 from statistics.Sim import Sim
+from statistics.start import get_allocations_used, optimize_portfolio
 from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data, get_tickers_for_symbols
 from common.start import store_pickle, get_pickle, store_ticker_analysis, store_classifer_analysis
 from common.start import get_classifier_analysis, CLASSIFIER_PICKLE_DIR
+
 
 def get_classifiers(): 
     classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
@@ -114,6 +116,7 @@ def get_portfolio(symbols, weights, start_date, end_date, investment, no_spy=Tru
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date, no_spy)
     tickers = get_tickers_for_symbols(symbols, start_date, end_date, no_spy)
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
+
     return portfolio
 
 def simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=True):
@@ -125,7 +128,7 @@ def simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=Tru
     portfolio.describe()
     print '---------------------------'
    
-    return simulation.cash_out(buy_date, sell_date)
+    return simulation
 
 def hold_spy(investment, buy_date, sell_date):
     symbols = ['SPY']
@@ -138,24 +141,60 @@ def hold_optimized_portfolio(investment, buy_date, sell_date):
     return simulate_trade(symbols, weights, buy_date, sell_date, investment)
 
 
-def use_predictions_optimized_portfolio(investment, buy_date, sell_date):
-    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
+def get_optimized_portfolio(symbols, start_date, end_date, investment):
+    # get new optimized portfolio and get its value for the date
+    tickers = get_tickers_for_symbols(symbols, start_date, end_date)
+    weights = []
     for symbol in symbols:
-        prediction_df, original_prices_df = predict_for_symbol([symbol], buy_date, sell_date)
+         weights.append(1/float(len(symbols)))
+    portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
+    optimized_portfolio = optimize_portfolio(portfolio)
+    # optimized_portfolio.describe()
+    return optimized_portfolio
+
+def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end):
+    # check for each day of the trade if symbol adds value, if so buy otherwise hold
+    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    
+    start_date = pd.to_datetime(buy_date)
+
+    end_date = pd.to_datetime(sell_date)
+    one_before_end_date = end_date - timedelta(days=1)
+    date_range = pd.date_range(start_date, end_date)
+    
+    for date in date_range:
+        predicted_symbols = []
+        if date < one_before_end_date:
+            date_plus_one = date + timedelta(days=1)
+            for symbol in symbols:
+                # print 'start date: ', date
+                # print 'end date: ' , date_plus_one
+                prediction_df, original_prices_df = predict_for_symbol([symbol], date, date_plus_one)
+                # print 'Orginal for ' + symbol, original_prices_df
+                # if (prediction_df[date:'Predictions'])
+                # print 'first date: ', prediction_df.loc[date]['Predictions']
+
+                if prediction_df.loc[date]['Predictions'] > original_prices_df.loc[date]['Adj Close']:
+                    # if symbol is predicted to rise then add it to new portfolio
+                    predicted_symbols.append(symbol)
+            # get new optimized portofolio
+            optim_port = get_optimized_portfolio(predicted_symbols, train_start, train_end, investment)
+            # get value of new optimaized portfolio
+            simulate_trade(optim_port.symbols, optim_port.weights, date, date_plus_one, investment)
+
+        # prediction_df, original_prices_df = predict_for_symbol([symbol], buy_date, sell_date)
         # if portfolio goes value goes up then buy otherwise sell
-        last_day_pred = ''
-        first_day_original = ''
-        print 'Predinction for ' + symbol, prediction_df
-        print 'Orginal for ' + symbol, original_prices_df
+       
     # return simulate_trade(symbols, weights, buy_date, sell_date, investment)
 
 def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regression"):
     window = 5
     symbol = symbols[0]
     start_date = pd.to_datetime(start_date)
+    end_date = pd.to_datetime(end_date)
     start_date = start_date - timedelta(days=window)
-
+    end_date = end_date + timedelta(days=1)
+    
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
     # analyze_features(ticker)
@@ -164,9 +203,9 @@ def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regressio
     prediction_df = predict(ticker, clf_name)
     # for clf_name, clf in classifiers.iteritems():
     prediction_df = predict(ticker, clf_name)
-    print symbol + ' Predictions using : ' + clf_name
-    print prediction_df[window-2:]
-    # plot_data(prediction_df, title=symbol + " Prediction vs actual")
+    # print symbol + ' Predictions using : ' + clf_name
+    # print prediction_df[window-2:]
+    # # plot_data(prediction_df, title=symbol + " Prediction vs actual")
     return prediction_df[window-2:], ticker.get_adj_close_df()[window-2:]
         
 def predict_for_symbols(symbols, start_date, end_date):
@@ -210,11 +249,11 @@ def run():
     train_start_date ='2017-01-03'
     train_end_date = '2017-11-03'
     buy_date = '2017-11-06'
-    sell_date = '2017-11-20'
+    sell_date = '2017-11-10'
     investment = 10000 # $10,000.00 as starting investment
-    hold_spy(investment, buy_date, sell_date)
-    hold_optimized_portfolio(investment, buy_date, sell_date)
-    use_predictions_optimized_portfolio(investment, buy_date, sell_date)
+    # hold_spy(investment, buy_date, sell_date)
+    # hold_optimized_portfolio(investment, buy_date, sell_date)
+    use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start_date, train_end_date)
     # train and test the model
     # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
     # df = predict_for_symbols(symbols, train_start_date, train_end_date)

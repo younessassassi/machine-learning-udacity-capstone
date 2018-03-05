@@ -90,10 +90,10 @@ def get_top_optimal_symbols(prices):
     return get_top_tickers_alloc(symbols_used, allocations_used)
     
 
-
 """Get the tickers, their correspoding allocations and dataframe that make up the optimal portfolio"""
 def optimize_portfolio(portfolio):
     symbol_alloc, is_reduced = get_top_optimal_symbols(portfolio.ticker_prices)
+    print symbol_alloc
     if is_reduced:
         symbols_used = symbol_alloc.index.values
         symbol_alloc, is_reduced = get_top_optimal_symbols(portfolio.ticker_prices)
@@ -101,9 +101,10 @@ def optimize_portfolio(portfolio):
     symbols_used = symbol_alloc.index.values.tolist()
     allocations_used = symbol_alloc['Allocations'].values.tolist()
     tickers = get_tickers_for_symbols(symbols_used, portfolio.start_date, portfolio.end_date)
-    return Portfolio(tickers, allocations_used, 
-                    portfolio.start_date, portfolio.end_date, portfolio.investment)
     
+    return Portfolio(tickers, allocations_used, 
+                    portfolio.start_date, portfolio.end_date, portfolio.investment) 
+        
  
 def compare_to_SP(portfolio):
     symbols = ['SPY']
@@ -137,8 +138,10 @@ def run():
     # symbols = ['T', 'IBM']
     # symbols = get_all_tickers()
     # weights = get_allocations_used(symbols, [])
-    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
+    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'DPS']
+    weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+    # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    # weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
     # Ticker Symbols:  [u'CME', u'WM', u'ED', u'NVDA', u'TWX', u'NEM', u'OKE', u'UNH', u'AMD', u'MLM']
     # Corresponding Weights:  [0.20183905313396344, 0.14482716986241267, 0.1379526466262745, 0.09841316051074742, 0.09361963471432375, 0.060075510494126, 0.05571434472502594, 0.03326697181012652, 0.031004421055023254, 0.030077208360923157]
     # weights = [0.5, 0.5]
