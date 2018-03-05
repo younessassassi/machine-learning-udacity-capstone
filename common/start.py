@@ -144,6 +144,14 @@ def store_pickle(data, filename, path):
     with open(path+filename, "wb") as f:
         pickle.dump(data, f)
 
+"""Store the optimized SP500 portfolio"""
+def store_optimized_portfolio(portfolio):
+    store_pickle(portfolio, 'optimized_portfolio.pickle', DATA_DIR)
+
+"""Get the optimized SP500 portfolio"""
+def get_optimized_portfolio():
+    return get_pickle('optimized_portfolio.pickle', DATA_DIR)
+
 """Store the classifier analysis data in a csv file"""
 def store_classifer_analysis(df):
     if not os.path.exists(CLASSIFIER_PICKLE_DIR):

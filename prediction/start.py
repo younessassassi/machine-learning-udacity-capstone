@@ -18,6 +18,7 @@ from statistics.start import get_allocations_used, optimize_portfolio
 from common.start import get_prices, get_all_tickers, visualize_correlation, plot_data, get_tickers_for_symbols
 from common.start import store_pickle, get_pickle, store_ticker_analysis, store_classifer_analysis
 from common.start import get_classifier_analysis, CLASSIFIER_PICKLE_DIR
+from common.start import store_optimized_portfolio, get_optimized_portfolio
 
 
 def get_classifiers(): 
@@ -144,7 +145,7 @@ def hold_optimized_portfolio(investment, buy_date, sell_date):
     print 'The cash value for holding the original optimized portfolio from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
     return simulation.get_daily_returns(), simulation.get_value()
 
-def get_optimized_portfolio(symbols, start_date, end_date, investment):
+def generate_optimized_portfolio(symbols, start_date, end_date, investment):
     # get new optimized portfolio and get its value for the date
     tickers = get_tickers_for_symbols(symbols, start_date, end_date)
     weights = []
@@ -181,7 +182,7 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_s
                     # if symbol is predicted to rise then add it to new portfolio
                     predicted_symbols.append(symbol)
             # get new optimized portofolio
-            optim_port = get_optimized_portfolio(predicted_symbols, train_start, train_end, cash)
+            optim_port = generate_optimized_portfolio(predicted_symbols, train_start, train_end, cash)
             # get value of new optimaized portfolio
             simulation = simulate_trade(optim_port.symbols, optim_port.weights, date, date_plus_one, cash)
             # update investment value
@@ -246,32 +247,66 @@ def visualize_classifier_results():
 
 def run(): 
     # make sure that you only use dates when the S&P 500 was trading
-    train_start_date ='2017-01-03'
-    train_end_date = '2017-11-03'
-    buy_date = '2017-11-06'
-    sell_date = '2017-11-10'
+    train_start ='2015-01-03'
+    train_end = '2015-10-30'
+    buy_date = '2015-11-02'
+    sell_date = '2015-11-06'
     investment = 10000 # $10,000.00 as starting investment
+    symbols = get_all_tickers()
+    weights = get_allocations_used(symbols, [])
+
+    # optimize the S&P 500 portfolio
+    print '----------------------------------------'
+    print 'Generating S&P 500 optimized portfolio..'
+    print '----------------------------------------'
+    store_optimized_portfolio(generate_optimized_portfolio(symbols, train_start, train_end, investment))
+    
     # train and test the model
     # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    # df = predict_for_symbols(symbols, train_start_date, train_end_date)
-    # store_classifer_analysis(df)  
-    # visualize_classifier_results()  
+    # retrieve optimized portfolio in case you dont want to run the long optimization process
+    print '----------------------------------------'
+    print 'Training various models..'
+    print '----------------------------------------'
+
+    optim_port = get_optimized_portfolio()
+    print 'optim port: ', optim_port
+    print '----------------------------------------'
+    print 'Optimized portfolio symbols: ', optim_port.symbols
+    print '----------------------------------------'
+    print '----------------------------------------'
+    print 'Optimized portfolio weights: ', optim_port.weights
+    print '----------------------------------------'
+    
+    df = predict_for_symbols(optim_port.symbols, train_start, train_end)
+    store_classifer_analysis(df)  
+    visualize_classifier_results() 
+
+    print '----------------------------------------'
+    print 'Generating Performance information..'
+    print '----------------------------------------'
+
+    # test the portfolio performance in different scenarios  
     daily_returns_df = pd.DataFrame(index=pd.date_range(buy_date, sell_date))
     value_df = pd.DataFrame(index=pd.date_range(buy_date, sell_date))
+
+    # get S&P performance info
     spy_daily_returns, spy_value = hold_spy(investment, buy_date, sell_date)
     daily_returns_df['SPY'] = spy_daily_returns
     value_df['SPY'] = spy_value
+
+    # get optimized portfolio performance info without using predictions
     portfolio_hold_daily_returns, hold_value =  hold_optimized_portfolio(investment, buy_date, sell_date)
     daily_returns_df['Hold'] = portfolio_hold_daily_returns
     value_df['hold'] = hold_value
-    portfolio_prediction_daily_returns, predict_value = use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start_date, train_end_date)
+    
+    # get optimized portfolio performance info with predictions
+    portfolio_prediction_daily_returns, predict_value = use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end)
     daily_returns_df['Predict'] = portfolio_prediction_daily_returns
-    print value_df
-    print predict_value
     value_df['predict'] = predict_value
+
+    # plot the results for comparison
     plot_data(daily_returns_df, 'Daily Return Comparison', 'Date', 'Return')
     plot_data(value_df, 'Portfolio Performance Comparison')
-    print value_df
 
 
 if __name__ == "__main__":
