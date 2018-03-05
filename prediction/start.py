@@ -135,14 +135,14 @@ def hold_spy(investment, buy_date, sell_date):
     weights = [1.0]
     simulation = simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=False)
     print 'The cash value for holding the S&P 500 from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
-    print 'SPY daily returns', simulation.get_daily_returns()
+    return simulation.get_daily_returns()
 
 def hold_optimized_portfolio(investment, buy_date, sell_date):
     symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
     weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
     simulation = simulate_trade(symbols, weights, buy_date, sell_date, investment)
     print 'The cash value for holding the original optimized portfolio from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
-    print 'SPY daily returns', simulation.get_daily_returns()
+    return simulation.get_daily_returns()
 
 def get_optimized_portfolio(symbols, start_date, end_date, investment):
     # get new optimized portfolio and get its value for the date
@@ -152,7 +152,6 @@ def get_optimized_portfolio(symbols, start_date, end_date, investment):
          weights.append(1/float(len(symbols)))
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
     optimized_portfolio = optimize_portfolio(portfolio)
-    # optimized_portfolio.describe()
     return optimized_portfolio
 
 def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end):
@@ -165,6 +164,7 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_s
     one_before_end_date = end_date - timedelta(days=1)
     date_range = pd.date_range(start_date, end_date)
     simulation = None
+    daily_returns = np.array([0.0])
     for date in date_range:
         predicted_symbols = []
         if date < end_date:
@@ -183,12 +183,12 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_s
             optim_port = get_optimized_portfolio(predicted_symbols, train_start, train_end, cash)
             # get value of new optimaized portfolio
             simulation = simulate_trade(optim_port.symbols, optim_port.weights, date, date_plus_one, cash)
-            print 'Regression daily returns', simulation.get_daily_returns()
             # update investment value
             cash = simulation.cash_out()
-      
+            daily_returns = np.concatenate((daily_returns, simulation.get_daily_returns()[1:]), axis=0)
+    
     print 'The cash value for trading based on Regression Model from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
-
+    return daily_returns
 
 def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regression"):
     window = 5
@@ -224,10 +224,6 @@ def predict_for_symbols(symbols, start_date, end_date):
     return pd.DataFrame(classifier_results, columns=['Symbol', 'Classifier', 'Confidence',
         'RMSE In Sample', 'RMSE Out of Sample'])
    
-        
-        # prediction_df = predict(ticker, clf_name)
-        # plot_data(prediction_df.tail(10), title="Prediction vs actual")
-
 def visualize_classifier_results():
     df = get_classifier_analysis()
     df.drop(df.columns[0], axis=1, inplace=True)
@@ -240,7 +236,6 @@ def visualize_classifier_results():
     print df
     df_rmse = df[['RMSE Out of Sample']]
     print df_rmse
-    
     
     ax = df_rmse.plot(kind='bar', title ="Classifier Comparison", figsize=(15, 10), legend=True, fontsize=10)
     ax.set_xlabel("Classifier", fontsize=12)
@@ -255,16 +250,21 @@ def run():
     buy_date = '2017-11-06'
     sell_date = '2017-11-10'
     investment = 10000 # $10,000.00 as starting investment
-    hold_spy(investment, buy_date, sell_date)
-    hold_optimized_portfolio(investment, buy_date, sell_date)
-    use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start_date, train_end_date)
     # train and test the model
     # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
     # df = predict_for_symbols(symbols, train_start_date, train_end_date)
-    # store_classifer_analysis(df)
+    # store_classifer_analysis(df)  
+    # visualize_classifier_results()  
+    daily_returns_df = pd.DataFrame(index=pd.date_range(buy_date, sell_date))
+    spy_daily_returns = hold_spy(investment, buy_date, sell_date)
+    daily_returns_df['SPY'] = spy_daily_returns
+    portfolio_hold_daily_returns =  hold_optimized_portfolio(investment, buy_date, sell_date)
+    daily_returns_df['Hold'] = portfolio_hold_daily_returns
+    portfolio_prediction_daily_returns = use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start_date, train_end_date)
+    daily_returns_df['Predict'] = portfolio_prediction_daily_returns
+    
+    plot_data(daily_returns_df, 'Daily Return Comparison', 'Date', 'Return')
 
-    # use_predictions_optimized_portfolio(investment, buy_date, sell_date)
-    # visualize_classifier_results()    
-   
+
 if __name__ == "__main__":
     run()
