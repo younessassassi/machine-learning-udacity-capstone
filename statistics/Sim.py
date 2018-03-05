@@ -55,4 +55,6 @@ class Sim(object):
 
     def get_original_prices(self):
         return self.daily_prices
-    
+
+    def get_daily_returns(self):
+        return self.portfolio.daily_returns

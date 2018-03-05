@@ -134,13 +134,15 @@ def hold_spy(investment, buy_date, sell_date):
     symbols = ['SPY']
     weights = [1.0]
     simulation = simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=False)
-    print 'The cash value for holding the S&P 500 from {} to {} is {}'.format(buy_date, sell_date, simulation.cash_out())
+    print 'The cash value for holding the S&P 500 from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
+    print 'SPY daily returns', simulation.get_daily_returns()
 
 def hold_optimized_portfolio(investment, buy_date, sell_date):
     symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
     weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
     simulation = simulate_trade(symbols, weights, buy_date, sell_date, investment)
-    print 'The cash value for holding the original optimized portfolio from {} to {} is {}'.format(buy_date, sell_date, simulation.cash_out())
+    print 'The cash value for holding the original optimized portfolio from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
+    print 'SPY daily returns', simulation.get_daily_returns()
 
 def get_optimized_portfolio(symbols, start_date, end_date, investment):
     # get new optimized portfolio and get its value for the date
@@ -182,10 +184,12 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_s
             optim_port = get_optimized_portfolio(predicted_symbols, train_start, train_end, cash)
             # get value of new optimaized portfolio
             simulation = simulate_trade(optim_port.symbols, optim_port.weights, date, date_plus_one, cash)
+            print 'Regression daily returns', simulation.get_daily_returns()
             # update investment value
             cash = simulation.cash_out()
       
-    print 'The cash value for trading based on Regression Model from {} to {} is {}'.format(buy_date, sell_date, simulation.cash_out())
+    print 'The cash value for trading based on Regression Model from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
+
 
 def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regression"):
     window = 5
@@ -249,7 +253,7 @@ def run():
     train_start_date ='2017-01-03'
     train_end_date = '2017-11-03'
     buy_date = '2017-11-06'
-    sell_date = '2017-11-10'
+    sell_date = '2017-11-08'
     investment = 10000 # $10,000.00 as starting investment
     hold_spy(investment, buy_date, sell_date)
     hold_optimized_portfolio(investment, buy_date, sell_date)
