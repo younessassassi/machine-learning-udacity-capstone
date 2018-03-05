@@ -13,7 +13,7 @@ def find_optimal_allocations(prices):
     function_guess = [guess] * prices.shape[1]
     bnds = [[0,1] for _ in prices.columns]
     cons = ({ 'type': 'eq', 'fun': lambda function_guess: 1.0 - np.sum(function_guess) })
-    result = spo.minimize(error_optimal_allocations, function_guess, args = (prices,), method='SLSQP', bounds = bnds, constraints = cons, options={'disp':True})
+    result = spo.minimize(error_optimal_allocations, function_guess, args = (prices,), method='SLSQP', bounds = bnds, constraints = cons, options={'disp':False})
     allocs = result.x
     return allocs
 

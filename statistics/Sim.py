@@ -5,10 +5,10 @@ import numpy as np
 
 class Sim(object):
     
-    def __init__(self, portfolio, start, end):
+    def __init__(self, portfolio, buy_date, sell_date):
         self.portfolio = portfolio
-        self.start = start
-        self.end = end
+        self.buy_date = buy_date
+        self.sell_date = sell_date
         #set up the data frame for the stocks over the period
         self.daily_prices = portfolio._get_ticker_prices()
         
@@ -18,11 +18,11 @@ class Sim(object):
         self.prepare_trades()
         pass 
 
-    def cash_out(self, buy_date, sell_date):
-        assets = self.trades_df.loc[buy_date]
+    def cash_out(self):
+        assets = self.trades_df.loc[self.buy_date]
         residual = assets[-1]
         assets = assets[:-1]
-        sell_data_prices = self.daily_prices.loc[sell_date]
+        sell_data_prices = self.daily_prices.loc[self.sell_date]
         calculated_assets = np.multiply(assets, sell_data_prices)
         cash_total = np.sum(calculated_assets) + residual
         print 'Simulation portfolio value: ${:,.2f}'.format(cash_total)
@@ -38,7 +38,7 @@ class Sim(object):
         #step through the trades data frame
         cash_total = self.portfolio.investment
         for index, row in self.trades_df.iterrows():
-            residual = 0;
+            residual = 0
             for symbol in self.portfolio.symbols:
                 count, temp_res = self.get_trade_count(self.daily_prices.loc[index, symbol], self.portfolio.weight_dict[symbol], cash_total)
                 residual = residual + temp_res
