@@ -57,3 +57,6 @@ class Sim(object):
 
     def get_daily_returns(self):
         return self.portfolio.daily_returns
+    
+    def get_value(self):
+        return self.portfolio.value
