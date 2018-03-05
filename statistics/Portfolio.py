@@ -44,7 +44,6 @@ class Portfolio(object):
         print 'Ending portfolio value: ${:,.2f}'.format(self.value[-1])
         print 'Cummulative Return {0:.2f}%'.format(self.cummulative_return*100)
 
-
     """ returns a dataframe with adj close price of all tickers in the portfolio"""
     def _get_ticker_prices(self):
         if not self.tickers:

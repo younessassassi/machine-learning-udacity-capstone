@@ -25,7 +25,6 @@ class Sim(object):
         sell_data_prices = self.daily_prices.loc[self.sell_date]
         calculated_assets = np.multiply(assets, sell_data_prices)
         cash_total = np.sum(calculated_assets) + residual
-        print 'Simulation portfolio value: ${:,.2f}'.format(cash_total)
         return cash_total
 
     def get_trade_count(self, price, weight, investment):

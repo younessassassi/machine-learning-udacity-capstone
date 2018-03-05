@@ -167,13 +167,12 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_s
     simulation = None
     for date in date_range:
         predicted_symbols = []
-        if date < one_before_end_date:
+        if date < end_date:
             date_plus_one = date + timedelta(days=1)
             for symbol in symbols:
                 # print 'start date: ', date
                 # print 'end date: ' , date_plus_one
-                prediction_df, original_prices_df = predict_for_symbol([symbol], date, date_plus_one)
-                # print 'Orginal for ' + symbol, original_prices_df
+                prediction_df, original_prices_df = predict_for_symbol([symbol], date, date_plus_one)  
                 # if (prediction_df[date:'Predictions'])
                 # print 'first date: ', prediction_df.loc[date]['Predictions']
 
@@ -197,14 +196,14 @@ def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regressio
     start_date = pd.to_datetime(start_date)
     end_date = pd.to_datetime(end_date)
     start_date = start_date - timedelta(days=window)
-    end_date = end_date + timedelta(days=1)
+    end_date = end_date + timedelta(days=window)
     
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
     # analyze_features(ticker)
             
     # classifiers, need_scaling = get_classifiers()
-    prediction_df = predict(ticker, clf_name)
+    # prediction_df = predict(ticker, clf_name)
     # for clf_name, clf in classifiers.iteritems():
     prediction_df = predict(ticker, clf_name)
     # print symbol + ' Predictions using : ' + clf_name
@@ -250,10 +249,11 @@ def visualize_classifier_results():
     plt.show()
 
 def run(): 
+    # make sure that you only use dates when the S&P 500 was trading
     train_start_date ='2017-01-03'
     train_end_date = '2017-11-03'
     buy_date = '2017-11-06'
-    sell_date = '2017-11-08'
+    sell_date = '2017-11-10'
     investment = 10000 # $10,000.00 as starting investment
     hold_spy(investment, buy_date, sell_date)
     hold_optimized_portfolio(investment, buy_date, sell_date)
