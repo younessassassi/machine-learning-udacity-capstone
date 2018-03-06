@@ -138,26 +138,37 @@ def hold_spy(investment, buy_date, sell_date):
     print 'The cash value for holding the S&P 500 from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
     return simulation.get_daily_returns(), simulation.get_value()
 
-def hold_optimized_portfolio(investment, buy_date, sell_date):
-    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
+def hold_optimized_portfolio(investment, buy_date, sell_date, symbols, weights):
     simulation = simulate_trade(symbols, weights, buy_date, sell_date, investment)
     print 'The cash value for holding the original optimized portfolio from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
     return simulation.get_daily_returns(), simulation.get_value()
 
-def generate_optimized_portfolio(symbols, start_date, end_date, investment):
+def generate_optimized_portfolio(symbols, start_date, end_date, investment, rerun=False):
     # get new optimized portfolio and get its value for the date
     tickers = get_tickers_for_symbols(symbols, start_date, end_date)
     weights = []
     for symbol in symbols:
-         weights.append(1/float(len(symbols)))
+        weights.append(1/float(len(symbols)))
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)
     optimized_portfolio = optimize_portfolio(portfolio)
+    # only keep symbols with 2% or higher weight and only run it once to make sure we dont create an inifinite loop
+    if not rerun:
+        # create dict of weights and symbols
+        symb_weight_dict = dict(zip(optimized_portfolio.symbols, optimized_portfolio.weights))
+        symbols_to_keep = []
+        for item in symb_weight_dict:
+            if symb_weight_dict[item] > 0.02:
+                symbols_to_keep.append(item)
+            else:
+                pass
+        if len(symbols_to_keep) < len(symbols):
+            print 'running optimizer one more time'
+            optimized_portfolio = generate_optimized_portfolio(symbols_to_keep, start_date, end_date, investment, True)
+
     return optimized_portfolio
 
-def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end):
-    # check for each day of the trade if symbol adds value, if so buy otherwise hold
-    symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end, symbols):
+    # check for each day of the trade if symbol adds value, if so buy 
     cash = investment
     start_date = pd.to_datetime(buy_date)
 
@@ -247,10 +258,10 @@ def visualize_classifier_results():
 
 def run(): 
     # make sure that you only use dates when the S&P 500 was trading
-    train_start ='2015-01-03'
-    train_end = '2015-10-30'
-    buy_date = '2015-11-02'
-    sell_date = '2015-11-06'
+    train_start ='2017-01-02'
+    train_end = '2017-12-01'
+    buy_date = '2017-12-04'
+    sell_date = '2017-12-08'
     investment = 10000 # $10,000.00 as starting investment
     symbols = get_all_tickers()
     weights = get_allocations_used(symbols, [])
@@ -259,16 +270,17 @@ def run():
     print '----------------------------------------'
     print 'Generating S&P 500 optimized portfolio..'
     print '----------------------------------------'
-    store_optimized_portfolio(generate_optimized_portfolio(symbols, train_start, train_end, investment))
-    
-    # train and test the model
-    # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
+    # store_optimized_portfolio(generate_optimized_portfolio(symbols, train_start, train_end, investment))
+    optim_port = get_optimized_portfolio()
+    df = predict_for_symbols(optim_port.symbols, train_start, train_end)
+    store_classifer_analysis(df)  
+    visualize_classifier_results() 
+   
     # retrieve optimized portfolio in case you dont want to run the long optimization process
     print '----------------------------------------'
     print 'Training various models..'
     print '----------------------------------------'
 
-    optim_port = get_optimized_portfolio()
     print 'optim port: ', optim_port
     print '----------------------------------------'
     print 'Optimized portfolio symbols: ', optim_port.symbols
@@ -277,9 +289,7 @@ def run():
     print 'Optimized portfolio weights: ', optim_port.weights
     print '----------------------------------------'
     
-    df = predict_for_symbols(optim_port.symbols, train_start, train_end)
-    store_classifer_analysis(df)  
-    visualize_classifier_results() 
+   
 
     print '----------------------------------------'
     print 'Generating Performance information..'
@@ -295,12 +305,12 @@ def run():
     value_df['SPY'] = spy_value
 
     # get optimized portfolio performance info without using predictions
-    portfolio_hold_daily_returns, hold_value =  hold_optimized_portfolio(investment, buy_date, sell_date)
+    portfolio_hold_daily_returns, hold_value =  hold_optimized_portfolio(investment, buy_date, sell_date, optim_port.symbols, optim_port.weights)
     daily_returns_df['Hold'] = portfolio_hold_daily_returns
     value_df['hold'] = hold_value
     
     # get optimized portfolio performance info with predictions
-    portfolio_prediction_daily_returns, predict_value = use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end)
+    portfolio_prediction_daily_returns, predict_value = use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end, optim_port.symbols)
     daily_returns_df['Predict'] = portfolio_prediction_daily_returns
     value_df['predict'] = predict_value
 
