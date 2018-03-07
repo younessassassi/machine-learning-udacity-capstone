@@ -219,7 +219,7 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_s
             daily_returns = np.concatenate((daily_returns, simulation.get_daily_returns()[1:]), axis=0)
             value = np.concatenate((value, simulation.get_value()[1:]), axis=0)
     print 'The cash value for trading based on Regression Model from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
-    print 'The return value for for trading based on Regression Model from {} to {} is {:,.2f}%'.format(buy_date, sell_date, (get_portfolio_return(investment, simulation.cash_out())) * 100)
+    print 'The return value for trading based on Regression Model from {} to {} is {:,.2f}%'.format(buy_date, sell_date, (get_portfolio_return(investment, simulation.cash_out())) * 100)
     return daily_returns, value
 
 """Get predictions for a single symbol"""
@@ -233,15 +233,9 @@ def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regressio
     
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
-    # analyze_features(ticker)
-            
-    # classifiers, need_scaling = get_classifiers()
-    # prediction_df = predict(ticker, clf_name)
-    # for clf_name, clf in classifiers.iteritems():
+    # analyze_features(ticker)        
     prediction_df = predict(ticker, clf_name)
-    # print symbol + ' Predictions using : ' + clf_name
-    # print prediction_df[window-2:]
-    # # plot_data(prediction_df, title=symbol + " Prediction vs actual")
+    # plot_data(prediction_df, title=symbol + " Prediction vs actual")
     return prediction_df[window-2:], ticker.get_adj_close_df()[window-2:]
         
 """Train and test a set of symbols using a number of different classifier then return the model performance"""
