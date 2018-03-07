@@ -4,10 +4,10 @@ Youness Assassi
 February 17, 2018
 Financial Stocks Portfolio Analysis and trading
 
-##About this project
+## About this project
 This is the final project for the Udacity Machine Learning Nanodegree.  I chose to focus on finance and stock trading for this project.  Here is how it is broken down. 
 
-##Dependencies
+## Dependencies
 This project requires Python 2.7.  I used [Anaconda](http://continuum.io/downloads) which contained all of the necessary libraries, but they can also be added individually if necessary:
 - [NumPy](http://www.numpy.org/)
 - [Pandas](http://pandas.pydata.org)
@@ -46,7 +46,7 @@ Note that this task may take a long time to complete as it will be retriving sto
 ### Statistics
 The statistics folder contains the statistic module with methods for optimizing a portfolio and visualizing portfolio and ticker stats.  
 
-In order to optimize portfolio, change the start_date, end_date, investiment, symbols and weights then optimize to True.  The next step is to  navigate to the top level project directory (that contains this README) and type
+In order to optimize portfolio, change the start_date, end_date, investment, symbols and weights then optimize to True.  The next step is to  navigate to the top level project directory (that contains this README) and type
 
 ```bash
 python -m statistics.start
