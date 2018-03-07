@@ -281,8 +281,8 @@ def visualize_classifier_results():
 """Default method for this module"""
 def run(): 
     # make sure that you only use dates when the S&P 500 was trading
-    train_start ='2017-01-02'
-    train_end = '2017-12-01'
+    train_start ='2017-11-01'
+    train_end = ' 2017-12-01'
     # Buy date and sell date must within the same week and do not include holidays or weekends
     buy_date = '2017-12-04' 
     sell_date = '2017-12-08'
@@ -297,7 +297,7 @@ def run():
     print 'Generating S&P 500 optimized portfolio..'
     print '----------------------------------------'
     # generate an optimized portfolio using the S&P 500 based on the training dates mentioned above
-    # store_optimized_portfolio(generate_optimized_portfolio(symbols, train_start, train_end, investment))
+    store_optimized_portfolio(generate_optimized_portfolio(symbols, train_start, train_end, investment))
     optim_port = get_optimized_portfolio()
     
     # retrieve optimized portfolio in case you dont want to run the long optimization process
@@ -310,7 +310,6 @@ def run():
     store_classifer_analysis(df)  
     # visualize a comaparison of the different classifiers
     visualize_classifier_results() 
-   
    
     print 'optim port: ', optim_port
     print '----------------------------------------'
