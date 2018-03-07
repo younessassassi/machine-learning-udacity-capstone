@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 
-"""Trade simulation class"""
-
+"""Trade simulation class that can be initialized with a portfolio object, and a date range"""
 class Sim(object):
     
     def __init__(self, portfolio, buy_date, sell_date):
@@ -18,6 +17,7 @@ class Sim(object):
         self.prepare_trades()
         pass 
 
+    """Method for calculating the cash value after liquidating the portolio positions plus any unused cash"""
     def cash_out(self):
         assets = self.trades_df.loc[self.buy_date]
         residual = assets[-1]
@@ -27,12 +27,14 @@ class Sim(object):
         cash_total = np.sum(calculated_assets) + residual
         return cash_total
 
+    """Calculate the number of stocks that can be purchased based on available cash and portfolio weight for a single stock"""
     def get_trade_count(self, price, weight, investment):
         # number of shares you can purchase
         count = (investment * weight) / price
         residual = (investment * weight) % price
         return int(count), residual
         
+    """Prepare the trade information for all stocks making up the portfolio"""
     def prepare_trades(self):
         #step through the trades data frame
         cash_total = self.portfolio.investment
@@ -45,18 +47,18 @@ class Sim(object):
             row['Residual'] = residual
         pass
 
-
-    def describe(self):
-        print "Simulation Object"
-
+    """Return a DataFrame with the list of trades"""
     def get_trades_df(self):
         return self.trades_df
 
+    """Return the daily prices"""
     def get_original_prices(self):
         return self.daily_prices
 
+    """Get the daily portfolio daily retruns"""
     def get_daily_returns(self):
         return self.portfolio.daily_returns
     
+    """Get the portfolio estimated value"""
     def get_value(self):
         return self.portfolio.value
