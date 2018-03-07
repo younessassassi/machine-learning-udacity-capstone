@@ -122,7 +122,7 @@ def compare_to_SP(portfolio):
     plot_data(normalized_df)
 
 
-def displayTicker(symbol, start_date, end_date):
+def display_ticker(symbol, start_date, end_date):
     tickers = get_tickers_for_symbols([symbol], start_date, end_date)
     ticker = tickers[0]
     plot_data(ticker.df, symbol+' Adj Close Price')
@@ -134,7 +134,7 @@ def run():
     end_date = '2017-12-31'
     investment = 100000 # $100,000.00 as starting investment
     # uncomment this line to display the adjusted close price of a single stock
-    # displayTicker('T', start_date, end_date)  
+    # display_ticker('T', start_date, end_date)  
     # symbols = ['T', 'IBM']
     # symbols = get_all_tickers()
     # weights = get_allocations_used(symbols, [])

@@ -20,7 +20,11 @@ from common.start import store_pickle, get_pickle, store_ticker_analysis, store_
 from common.start import get_classifier_analysis, CLASSIFIER_PICKLE_DIR
 from common.start import store_optimized_portfolio, get_optimized_portfolio
 
+"""Get portfolio return"""
+def get_portfolio_return(begining_value, ending_value):
+    return (begining_value - ending_value)/begining_value
 
+"""Get a dictionary of various classifers with their corresponding long name"""
 def get_classifiers(): 
     classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
     classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'SVM Regression Linear',
@@ -29,6 +33,7 @@ def get_classifiers():
         svm.SVR(kernel= 'poly', C=1e3, degree=2), svm.SVR(kernel='rbf', C=1e3, gamma=0.1), LinearRegression()]
     return dict(zip(classifier_names, classifiers)), classifiers_needing_scaling
 
+"""Train the model and return its confidence score and predictions"""
 def run_prediction(clf, X_train, X_test, y_train, y_test):
     clf.fit(X_train, y_train)
     confidence = clf.score(X_test, y_test)
@@ -36,6 +41,7 @@ def run_prediction(clf, X_train, X_test, y_train, y_test):
 
     return confidence, predictions, clf
 
+"""Run a cross validation for a classifier""""
 def cross_validate(ticker, clf_name, clf):
     X = ticker.get_features()
     y = ticker.get_label()
@@ -75,11 +81,12 @@ def cross_validate(ticker, clf_name, clf):
     print '----------------------------------------------------------------'
     return [ticker.symbol, clf_name, confidence_mean, rmse_mean_in, rmse_mean_out]
 
-
+"""Get the classifier path name"""
 def get_model_pickle_path(symbol, clf_name):
     _clf_name = clf_name.replace(' ', '_').lower()
     return symbol+'_'+_clf_name+'_model.sav'
 
+"""Generate a model per classifier and ticker symbol then store model for later use""""
 def generate_model(ticker, clf_name, clf):
     X_train = ticker.get_features()
     y_train = ticker.get_label()
@@ -93,12 +100,14 @@ def generate_model(ticker, clf_name, clf):
     # pickle the classifier for use at a later time
     store_pickle(clf, get_model_pickle_path(ticker.symbol, clf_name), CLASSIFIER_PICKLE_DIR)
 
+"""Use a stored model to predict future price for a ticker"""
 def run_classifier_for_symbol(ticker, clf_name):
     X_predict = ticker.get_features()
     model = get_pickle(get_model_pickle_path(ticker.symbol, clf_name), CLASSIFIER_PICKLE_DIR)
 
     return model.predict(X_predict)
 
+"""store and return predictions using a model and ticker"""
 def predict(ticker, clf_name):
     predict_df = ticker.df[['Next Day Adj Close']].copy() 
     predict_df['Predictions'] = run_classifier_for_symbol(ticker, clf_name)
@@ -108,11 +117,13 @@ def predict(ticker, clf_name):
     store_ticker_analysis(predict_df, ticker.symbol+'_'+_clf_name+'_prediction')
     return predict_df
 
+"""Visulize the correlation between different ticker features"""
 def analyze_features(ticker):
     ticker_df = ticker.get_df()
     store_ticker_analysis(ticker_df, ticker.symbol)
     visualize_correlation(ticker_df, 'Variable Correlation')
 
+"""Get a portfolio based on some input data""""
 def get_portfolio(symbols, weights, start_date, end_date, investment, no_spy=True):
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date, no_spy)
     tickers = get_tickers_for_symbols(symbols, start_date, end_date, no_spy)
@@ -120,6 +131,7 @@ def get_portfolio(symbols, weights, start_date, end_date, investment, no_spy=Tru
 
     return portfolio
 
+"""Retrurn a simulation object for a set of symbols, weights and starting investment""""
 def simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=True):
     portfolio = get_portfolio(symbols, weights, buy_date, sell_date, investment, no_spy)
     simulation = Sim(portfolio, buy_date, sell_date)
@@ -131,6 +143,7 @@ def simulate_trade(symbols, weights, buy_date, sell_date, investment, no_spy=Tru
    
     return simulation
 
+"""Simulation holding the S&P 500 ticker during a date range"""
 def hold_spy(investment, buy_date, sell_date):
     symbols = ['SPY']
     weights = [1.0]
@@ -138,11 +151,13 @@ def hold_spy(investment, buy_date, sell_date):
     print 'The cash value for holding the S&P 500 from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
     return simulation.get_daily_returns(), simulation.get_value()
 
+"""Simulation holding the S&P 500 ticker during a date range"""
 def hold_optimized_portfolio(investment, buy_date, sell_date, symbols, weights):
     simulation = simulate_trade(symbols, weights, buy_date, sell_date, investment)
     print 'The cash value for holding the original optimized portfolio from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
     return simulation.get_daily_returns(), simulation.get_value()
 
+"""Generate an optimized portfolio using historical data and symbols""""
 def generate_optimized_portfolio(symbols, start_date, end_date, investment, rerun=False):
     # get new optimized portfolio and get its value for the date
     tickers = get_tickers_for_symbols(symbols, start_date, end_date)
@@ -167,6 +182,7 @@ def generate_optimized_portfolio(symbols, start_date, end_date, investment, reru
 
     return optimized_portfolio
 
+"""Simulate the trading of an optimized portfolio""""
 def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end, symbols):
     # check for each day of the trade if symbol adds value, if so buy 
     cash = investment
@@ -203,6 +219,7 @@ def use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_s
     print 'The cash value for trading based on Regression Model from {} to {} is ${:,.2f}'.format(buy_date, sell_date, simulation.cash_out())
     return daily_returns, value
 
+"""Get predictions for a single symbol"""
 def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regression"):
     window = 5
     symbol = symbols[0]
@@ -224,6 +241,7 @@ def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regressio
     # # plot_data(prediction_df, title=symbol + " Prediction vs actual")
     return prediction_df[window-2:], ticker.get_adj_close_df()[window-2:]
         
+"""Train and test a set of symbols using a number of different classifier then return the model performance""""
 def predict_for_symbols(symbols, start_date, end_date):
     prices_df, prices_df_with_spy = get_prices(symbols, start_date, end_date)
     classifiers, need_scaling = get_classifiers()
@@ -236,7 +254,8 @@ def predict_for_symbols(symbols, start_date, end_date):
             generate_model(ticker, clf_name, clf)
     return pd.DataFrame(classifier_results, columns=['Symbol', 'Classifier', 'Confidence',
         'RMSE In Sample', 'RMSE Out of Sample'])
-   
+
+"""Visualize the model performance"""
 def visualize_classifier_results():
     df = get_classifier_analysis()
     df.drop(df.columns[0], axis=1, inplace=True)
@@ -256,31 +275,40 @@ def visualize_classifier_results():
     plt.xticks(rotation='horizontal')
     plt.show()
 
+""""Default method for this module"""
 def run(): 
     # make sure that you only use dates when the S&P 500 was trading
     train_start ='2017-01-02'
     train_end = '2017-12-01'
-    buy_date = '2017-12-04'
+    # Buy date and sell date must within the same week and do not include holidays or weekends
+    buy_date = '2017-12-04' 
     sell_date = '2017-12-08'
     investment = 10000 # $10,000.00 as starting investment
+    # get all ticker symbols of the S&P 500
     symbols = get_all_tickers()
+    # use equal weights for all of the included symbols
     weights = get_allocations_used(symbols, [])
 
     # optimize the S&P 500 portfolio
     print '----------------------------------------'
     print 'Generating S&P 500 optimized portfolio..'
     print '----------------------------------------'
+    # generate an optimized portfolio using the S&P 500 based on the training dates mentioned above
     # store_optimized_portfolio(generate_optimized_portfolio(symbols, train_start, train_end, investment))
     optim_port = get_optimized_portfolio()
-    df = predict_for_symbols(optim_port.symbols, train_start, train_end)
-    store_classifer_analysis(df)  
-    visualize_classifier_results() 
-   
+    
     # retrieve optimized portfolio in case you dont want to run the long optimization process
     print '----------------------------------------'
     print 'Training various models..'
     print '----------------------------------------'
-
+    # train and test the optimized portfolio data against a number of regression algorithms 
+    df = predict_for_symbols(optim_port.symbols, train_start, train_end)
+    # save the models generated by the previous step
+    store_classifer_analysis(df)  
+    # visualize a comaparison of the different classifiers
+    visualize_classifier_results() 
+   
+   
     print 'optim port: ', optim_port
     print '----------------------------------------'
     print 'Optimized portfolio symbols: ', optim_port.symbols
@@ -288,8 +316,6 @@ def run():
     print '----------------------------------------'
     print 'Optimized portfolio weights: ', optim_port.weights
     print '----------------------------------------'
-    
-   
 
     print '----------------------------------------'
     print 'Generating Performance information..'
@@ -299,17 +325,17 @@ def run():
     daily_returns_df = pd.DataFrame(index=pd.date_range(buy_date, sell_date))
     value_df = pd.DataFrame(index=pd.date_range(buy_date, sell_date))
 
-    # get S&P performance info
+    # Generate the S&P performance data during the buy and sell date range
     spy_daily_returns, spy_value = hold_spy(investment, buy_date, sell_date)
     daily_returns_df['SPY'] = spy_daily_returns
     value_df['SPY'] = spy_value
 
-    # get optimized portfolio performance info without using predictions
+    # Generate the optimized portfolio performance data during the buy and sell date range without using predictions or active trading
     portfolio_hold_daily_returns, hold_value =  hold_optimized_portfolio(investment, buy_date, sell_date, optim_port.symbols, optim_port.weights)
     daily_returns_df['Hold'] = portfolio_hold_daily_returns
     value_df['hold'] = hold_value
     
-    # get optimized portfolio performance info with predictions
+    # Actively trade the optimized portfolio using the linear regression model
     portfolio_prediction_daily_returns, predict_value = use_predictions_optimized_portfolio(investment, buy_date, sell_date, train_start, train_end, optim_port.symbols)
     daily_returns_df['Predict'] = portfolio_prediction_daily_returns
     value_df['predict'] = predict_value
