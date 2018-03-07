@@ -19,7 +19,7 @@ If you do not have Python installed yet, it is highly recommended that you insta
 ### Prediction
 The prediction folder contains the prediction module that will generate an optimized portfolio then provide recommendation on wether to invest in a porfolio in a given date.  
 
-In a terminal or command window, navigate to the top level project directory report (that contains this README) and type
+In a terminal or command window, navigate to the top level project directory (that contains this README) and type
 
 ```bash
 python -m prediction.start
@@ -31,11 +31,11 @@ Update the train and predict dates in the run method contained in the 'predictio
 The common folder contains common helper functions using across the project
 
 ### Data 
-The data folder contains all the data retrieved as part of this project.
+The data folder contains all the data retrieved and generated as part of this project.
 
 ### Processing
 The processing modules contains methods for retrieving stock prices from yahoo finance. 
-In order to retrieve a fresh set of data using a new date range, please update the start_tinme and end_time with your chosen values in the run method contained in the 'processing/start.py' directory, then in a terminal or command window, navigate to the top level project directory report (that contains this README) and type
+In order to retrieve a fresh set of data using a new date range, please update the start_tinme and end_time with your chosen values in the run method contained in the 'processing/start.py' directory, then in a terminal or command window, navigate to the top level project directory (that contains this README) and type
 
 ```bash
 python -m processing.start
@@ -44,10 +44,13 @@ python -m processing.start
 Note that this task may take a long time to complete as it will be retriving stock data one ticker at a time with a time delay to avoid getting your transaction cancelled by Yahoo Finance API.
 
 ### Statistics
-The statistics folder contains modules for calculating different financial statistics
+The statistics folder contains the statistic module with methods for optimizing a portfolio and visualizing portfolio and ticker stats.  
 
-### Prediction
-The prediction folder contains modules for predicting stock prices and recommending portfolios
+In order to optimize portfolio, change the start_date, end_date, investiment, symbols and weights then optimize to True.  The next step is to  navigate to the top level project directory (that contains this README) and type
+
+```bash
+python -m statistics.start
+```  
 
 ### Report
 In the report file, I describe the analysis that I made along with my conclusion about using machine learning in Finance and Trading.
