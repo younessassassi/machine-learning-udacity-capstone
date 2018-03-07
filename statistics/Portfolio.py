@@ -33,7 +33,7 @@ class Portfolio(object):
         pass
 
 
-    """" Print important object information """
+    """ Print important object information """
     def describe(self):
         print 'Portfolio stats From {} to {}'.format(self.start_date, self.end_date)
         print 'Ticker Symbols: ', self.symbols

@@ -278,7 +278,7 @@ def visualize_classifier_results():
     plt.xticks(rotation='horizontal')
     plt.show()
 
-""""Default method for this module"""
+"""Default method for this module"""
 def run(): 
     # make sure that you only use dates when the S&P 500 was trading
     train_start ='2017-01-02'
