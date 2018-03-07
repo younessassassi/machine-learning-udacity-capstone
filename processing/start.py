@@ -51,8 +51,8 @@ def get_data_from_yahoo(start, end, update_sp500_data=False):
 """Retrieve S&P data"""
 def run():
     update_stock_prices = True # set to True to update the stock prices
-    start_time = None # set to True to update the stock prices
-    end_time = None
+    start_time = None # change to new date such as dt.datetime(20017, 1, 1)
+    end_time = None # change to new date such as dt.datetime(20018, 1, 1)
     if update_stock_prices or start_time or end_time:   
         get_data_from_yahoo(start_time, end_time, update_stock_prices)
 
