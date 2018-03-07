@@ -274,7 +274,7 @@ def visualize_classifier_results():
 """Default method for this module"""
 def run(): 
     # make sure that you only use dates when the S&P 500 was trading
-    train_start ='2017-11-01'
+    train_start ='2017-01-02'
     train_end = ' 2017-12-01'
     # Buy date and sell date must within the same week and do not include holidays or weekends
     buy_date = '2017-12-04' 
