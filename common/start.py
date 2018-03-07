@@ -98,7 +98,7 @@ def plot_data(df, title="Stock performance", xlabel="Date", ylabel="Price"):
     plt.legend(loc=2)
     plt.show()
 
-""" Visualize correlation between stocks on a df."""
+""" Visualize correlation between stocks on a dataframe."""
 def visualize_correlation(df, title=""):
     df_corr = df.corr()
     data = df_corr.values
@@ -152,16 +152,17 @@ def store_optimized_portfolio(portfolio):
 def get_optimized_portfolio():
     return get_pickle('optimized_portfolio.pickle', DATA_DIR)
 
-"""Store the classifier analysis data in a csv file"""
+"""Store the model analysis data in a csv file"""
 def store_classifer_analysis(df):
     if not os.path.exists(CLASSIFIER_PICKLE_DIR):
         os.makedirs(CLASSIFIER_PICKLE_DIR)
     
     df.to_csv(TICKER_STATS_DIR+'classifiers_results.csv')
 
+"""Get stored model analysis data"""
 def get_classifier_analysis():
     if not os.path.exists(CLASSIFIER_PICKLE_DIR):
-        print 'Classifier stat file does not exit. Please run the predictions before you try opeining this files'
+        print 'Classifier stat file does not exit. Please run the predictions before you try openning this files'
     else:
         return pd.read_csv(TICKER_STATS_DIR+'classifiers_results.csv')
 
