@@ -26,12 +26,19 @@ def get_portfolio_return(begining_value, ending_value):
 
 """Get a dictionary of various classifers with their corresponding long name"""
 def get_classifiers(): 
-    classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
-    classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'SVM Regression Linear',
-        'SVM Regression Poly', 'SVM Regression RBF', 'Linear Regression']
-    classifiers = [neighbors.KNeighborsRegressor(), RandomForestRegressor(max_depth=2, random_state=0), svm.SVR(kernel='linear', C=1e3), 
-        svm.SVR(kernel= 'poly', C=1e3, degree=2), svm.SVR(kernel='rbf', C=1e3, gamma=0.1), LinearRegression()]
+    classifiers_needing_scaling = []
+    classifier_names = ['Linear Regression']
+    classifiers = [LinearRegression()]
     return dict(zip(classifier_names, classifiers)), classifiers_needing_scaling
+
+# """Get a dictionary of various classifers with their corresponding long name"""
+# def get_classifiers(): 
+#     classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
+#     classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'SVM Regression Linear',
+#         'SVM Regression Poly', 'SVM Regression RBF', 'Linear Regression']
+#     classifiers = [neighbors.KNeighborsRegressor(), RandomForestRegressor(max_depth=2, random_state=0), svm.SVR(kernel='linear', C=1e3), 
+#         svm.SVR(kernel= 'poly', C=1e3, degree=2), svm.SVR(kernel='rbf', C=1e3, gamma=0.1), LinearRegression()]
+#     return dict(zip(classifier_names, classifiers)), classifiers_needing_scaling
 
 """Train the model and return its confidence score and predictions"""
 def run_prediction(clf, X_train, X_test, y_train, y_test):
@@ -262,7 +269,6 @@ def visualize_classifier_results():
     df.drop('Symbol', axis=1, inplace=True)
     df.set_index('Classifier', inplace=True)
     df.sort_values(by=['RMSE Out of Sample'], inplace=True)
-    print df
     df_rmse = df[['RMSE Out of Sample']]
     print df_rmse
     

@@ -65,7 +65,6 @@ def get_allocations_used(symbols_used, allocations):
     if len(allocations_used) == 0:
         for symbol in symbols_used:
             allocations_used.append(1/float(len(symbols_used)))
-    print 'Number of tickers used: ', len(allocations_used)
     return allocations_used
 
 
@@ -93,7 +92,6 @@ def get_top_optimal_symbols(prices):
 """Get the tickers, their correspoding allocations and dataframe that make up the optimal portfolio"""
 def optimize_portfolio(portfolio):
     symbol_alloc, is_reduced = get_top_optimal_symbols(portfolio.ticker_prices)
-    print symbol_alloc
     if is_reduced:
         symbols_used = symbol_alloc.index.values
         symbol_alloc, is_reduced = get_top_optimal_symbols(portfolio.ticker_prices)
