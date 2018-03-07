@@ -2,6 +2,7 @@ from prediction.Ticker import Ticker
 
 import numpy as np
 
+"""Portfolio class that can be initialized using tickers objects, weights, date range and investments """
 class Portfolio(object):
     def __init__(self, tickers, weights, start_date, end_date, 
                 investment=1, daily_rf=0, samples_per_year=252):
@@ -32,7 +33,7 @@ class Portfolio(object):
         pass
 
 
-    """" Print important class information """
+    """" Print important object information """
     def describe(self):
         print 'Portfolio stats From {} to {}'.format(self.start_date, self.end_date)
         print 'Ticker Symbols: ', self.symbols
