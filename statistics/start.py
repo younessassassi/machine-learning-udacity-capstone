@@ -105,7 +105,7 @@ def optimize_portfolio(portfolio):
     return Portfolio(tickers, allocations_used, 
                     portfolio.start_date, portfolio.end_date, portfolio.investment) 
         
- 
+"""Compare portfolio to S&P stock index"""
 def compare_to_SP(portfolio):
     symbols = ['SPY']
     weights = [1]
@@ -121,7 +121,7 @@ def compare_to_SP(portfolio):
     normalized_df = combined_df/combined_df.ix[0]
     plot_data(normalized_df)
 
-
+"""Plot ticker Adjusted Close prices"""
 def display_ticker(symbol, start_date, end_date):
     tickers = get_tickers_for_symbols([symbol], start_date, end_date)
     ticker = tickers[0]
@@ -133,25 +133,9 @@ def run():
     start_date = '2017-01-01'
     end_date = '2017-12-31'
     investment = 100000 # $100,000.00 as starting investment
-    # uncomment this line to display the adjusted close price of a single stock
-    # display_ticker('T', start_date, end_date)  
-    # symbols = ['T', 'IBM']
-    # symbols = get_all_tickers()
-    # weights = get_allocations_used(symbols, [])
     symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'DPS']
     weights = [0.2, 0.2, 0.2, 0.2, 0.2]
-    # symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'TPR', 'DPS']
-    # weights = [0.40, 0.21, 0.19, 0.12, 0.05, 0.03]
-    # Ticker Symbols:  [u'CME', u'WM', u'ED', u'NVDA', u'TWX', u'NEM', u'OKE', u'UNH', u'AMD', u'MLM']
-    # Corresponding Weights:  [0.20183905313396344, 0.14482716986241267, 0.1379526466262745, 0.09841316051074742, 0.09361963471432375, 0.060075510494126, 0.05571434472502594, 0.03326697181012652, 0.031004421055023254, 0.030077208360923157]
-    # weights = [0.5, 0.5]
-    # tickers = ['GM','AZO','HRL','EW','DLTR','ILMN','AAP','NFLX','COO','CTL']
-    # allocations = [0.45405982,  0.16671612,  0.10584246,  0.07070163,  0.05952742,  0.03734693,  0.03629906,  0.02284556,  0.02190905,  0.0202729 ]
-    # # tickers = ['IBM', 'T', 'VZ', 'MO', 'MMM', 'ABBV', 'ALK', 'ARE', 'AAPL', 'AMAT', 'AIZ', 'BK', 'BBT']
-    # # allocations = [0.1, 0, 0.9] # allocations must add up to 1
-    # # tickers = get_all_tickers()
-    # # allocations = []
-    # optimize = False
+    optimize = False
     
     # analyse_portfolio(symbols, weights, start_date, end_date, investment, optimize)    
 
