@@ -54,10 +54,18 @@ class TickerAnalysed(Ticker):
     """Returns a set of ticker features that can be used for training a model"""
     def get_features(self):
         features = self._get_clean_df()
-        # features.drop(['Adj Close', 'Next Day Adj Close'], axis=1 , inplace=True)
+        features.drop(['Adj Close', 'Next Day Adj Close'], axis=1 , inplace=True)
        
-        features.drop(['Adj Close', 'Next Day Adj Close', 'Moving Average', 'Momentum'], axis=1 , inplace=True)
+        # features.drop(['Adj Close', 'Next Day Adj Close', 'Moving Average', 'Momentum'], axis=1 , inplace=True)
         return features.values
+
+    """Returns a set of ticker features as a DataFrame"""
+    def get_features_df(self):
+        features = self._get_clean_df()
+        features.drop(['Adj Close', 'Next Day Adj Close'], axis=1 , inplace=True)
+       
+        # features.drop(['Adj Close', 'Next Day Adj Close', 'Moving Average', 'Momentum'], axis=1 , inplace=True)
+        return features
     
     """Returns The Ticker label"""
     def get_label(self):

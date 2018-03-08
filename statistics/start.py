@@ -1,10 +1,10 @@
 """Stock portfolio analysis"""
 from statistics.Portfolio import Portfolio
-from prediction.Ticker import Ticker
+from prediction.Ticker import Ticker, TickerAnalysed
 import pandas as pd
 import numpy as np
-from common.start import get_ticker_data, get_all_tickers, get_prices
-from common.start import visualize_correlation, plot_data, get_tickers_for_symbols
+from common.start import get_ticker_data, get_all_tickers, get_prices, get_data_for_symbol
+from common.start import visualize_correlation, plot_data, get_tickers_for_symbols, store_ticker_analysis
 import scipy.optimize as spo
 
 """Find optimal allocations for a stock portfolio, optimizing for Sharpe ratio, given the daily prices"""
@@ -128,15 +128,28 @@ def display_ticker(symbol, start_date, end_date):
 
 """ You can change the stock, allocation, investment and date to get new values. """
 def run():
-    start_date = '2017-01-01'
-    end_date = '2017-12-31'
+    start_date = '2016-12-23'
+    end_date = '2017-01-05'
     investment = 100000 # $100,000.00 as starting investment
     symbols = ['PGR', 'CCI', 'STZ', 'WYNN', 'DPS']
+    print 'Data for ' + symbols[0], get_data_for_symbol(symbols[0]).head()
+
     weights = [0.2, 0.2, 0.2, 0.2, 0.2]
     optimize = False
     
     # analyse_portfolio(symbols, weights, start_date, end_date, investment, optimize)    
-
+    
+    # print calculated features and label
+    prices_df, prices_df_with_spy = get_prices([symbols[0]], start_date, end_date)
+    ticker_analysed = TickerAnalysed(symbol=symbols[0], data_df=prices_df[[symbols[0]]])
+    print  'Stats for: ', ticker_analysed.symbol
+    # Original data
+    store_ticker_analysis(ticker_analysed.df, ticker_analysed.symbol+'_original')
+    ticker_analysed.print_df()
+    # after filling missing data
+    store_ticker_analysis(ticker_analysed.get_features_df(), ticker_analysed.symbol+'_fill')
+    print ticker_analysed.get_features_df()
+    
     tickers = get_tickers_for_symbols(symbols, start_date, end_date)
 
     portfolio = Portfolio(tickers, weights, start_date, end_date, investment)

@@ -43,6 +43,12 @@ def get_prices(symbols, start_date, end_date, no_spy=True):
         prices_without_SPY = prices.copy()
     return prices_without_SPY, prices_with_SPY
 
+"""Return a DataFrame with original ticker data downloaded from the web"""
+def get_data_for_symbol(symbol):
+    ticker_data = pd.read_csv(get_ticker_path(symbol), index_col='Date',
+                parse_dates=True,  na_values=np.nan)
+    return ticker_data
+
 """Reads adjusted close stock data for given tickers from CSV files."""
 def get_ticker_data(tickers=None, start_date='2006-01-03', end_date='2018-02-23'):
     if not tickers:
