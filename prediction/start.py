@@ -237,7 +237,7 @@ def predict_for_symbol(symbols, start_date, end_date, clf_name="Linear Regressio
     ticker = TickerAnalysed(symbol=symbol, data_df=prices_df[[symbol]])
     # analyze_features(ticker)        
     prediction_df = predict(ticker, clf_name)
-    plot_data(prediction_df, title=symbol + " Prediction vs actual")
+    # plot_data(prediction_df, title=symbol + " Prediction vs actual")
     return prediction_df[window-2:], ticker.get_adj_close_df()[window-2:]
         
 """Train and test a set of symbols using a number of different classifier then return the model performance"""
