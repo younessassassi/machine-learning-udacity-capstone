@@ -25,13 +25,6 @@ def get_portfolio_return(begining_value, ending_value):
     return (ending_value - begining_value)/begining_value
 
 """Get a dictionary of various classifers with their corresponding long name"""
-# def get_classifiers(): 
-#     classifiers_needing_scaling = []
-#     classifier_names = ['Linear Regression']
-#     classifiers = [LinearRegression()]
-#     return dict(zip(classifier_names, classifiers)), classifiers_needing_scaling
-
-
 def get_classifiers(): 
     classifiers_needing_scaling = ['SVM Regression Linear', 'SVM Regression Poly', 'SVM Regression RBF']
     classifier_names = ['Nearest Neighbor Regressor', 'Random Forest Regressor', 'SVM Regression Linear',
@@ -299,7 +292,7 @@ def run():
     print 'Generating S&P 500 optimized portfolio..'
     print '----------------------------------------'
     # generate an optimized portfolio using the S&P 500 based on the training dates mentioned above
-    # store_optimized_portfolio(generate_optimized_portfolio(symbols, train_start, train_end, investment))
+    store_optimized_portfolio(generate_optimized_portfolio(symbols, train_start, train_end, investment))
     optim_port = get_optimized_portfolio()
     
     # retrieve optimized portfolio in case you dont want to run the long optimization process
